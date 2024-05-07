@@ -16,6 +16,9 @@ janela_principal.minsize(width=500, height=500) #Definindo a resposividade da ja
 rightframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="blue")
 rightframe.pack(side="right",fill="both")
 
+espacamento = Frame(rightframe)
+espacamento.pack(pady=30)
+
 label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario")
 label_usuario.pack(pady=10)
 
