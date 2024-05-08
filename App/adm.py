@@ -1,7 +1,10 @@
 import mysql.connector #Biblioteca para conexão com banco de dados  
 import customtkinter as ctk #Importando a biblioteca grafica
 from tkinter import Frame
-#import conexaoDB
+from tkinter import font
+import conexaoDB
+
+#Configuração de texto
 
 
 #Configuração da tela
@@ -32,24 +35,31 @@ input_senha = ctk.CTkEntry(rightframe, width=250, height=50)
 input_senha.pack(pady=10)
 
 
-label_usuario = ctk.CTkLabel(janela_principal, width=250, height=50, text="Usuario")
+
+
+leftframe =Frame(janela_principal, width=250, height=500, relief="raise", bg="blue")
+leftframe.pack(side="left",fill="both")
+
+label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuario")
 label_usuario.pack(pady=10)
 
-label_senha = ctk.CTkLabel(janela_principal, width=250, height=50, text="Senha")
+label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
 label_senha.pack(pady=10)
 
-label_senha = ctk.CTkLabel(janela_principal, width=250, height=50, text="Senha")
+label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
 label_senha.pack(pady=10)
 
 
-label_senha = ctk.CTkLabel(janela_principal, width=250, height=50, text="Senha")
+label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
 label_senha.pack(pady=10)
 
-label_senha = ctk.CTkLabel(janela_principal, width=250, height=50, text="Senha")
+label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
 label_senha.pack(pady=10)
+
+
 
 button_entrar = ctk.CTkButton(janela_principal, text="Entrar!",fg_color="black") 
-button_entrar.pack(padx=10, pady=10)
+button_entrar.place(x=190,y=400)
 
 
 
