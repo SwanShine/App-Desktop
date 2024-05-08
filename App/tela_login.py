@@ -12,6 +12,11 @@ janela_principal.title("Login") #Definindo o título da janela
 janela_principal.maxsize(width=500, height=500) #Definindo a resposividade da janela (Não responsivo)
 janela_principal.minsize(width=500, height=500) #Definindo a resposividade da janela (Não responsivo)
 
+#Função
+
+
+
+
 
 
 rightframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="blue")
@@ -38,4 +43,4 @@ button_entrar.pack(padx=10, pady=10)
 leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="blue")
 leftframe.pack(side="left")
 
-janela_principal.mainloop()
+janela_principal.mainloop()#Final da janela
