@@ -1,4 +1,4 @@
-#import mysql.connector #Biblioteca para conexão com banco de dados  
+import mysql.connector #Biblioteca para conexão com banco de dados  
 import customtkinter as ctk #Importando a biblioteca grafica
 import conexaoDB
 from tkinter import Frame
@@ -30,7 +30,7 @@ def create_gradient(canvas, x1, y1, x2, y2, start_color, end_color):
         canvas.create_line(x1, i, x2, i, fill=color)
         
 #Imagens
-#imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
+imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
 fundo_trans= ImageTk.PhotoImage(Image.open("Imagens/trasnparente.png"))
 
 #Cores
@@ -44,7 +44,7 @@ cor_de_fundo.pack()
 
 #Tela
 
-container = Frame(janela_principal,width=500, height=500, imagem="fundo_trans")
+container = Frame(janela_principal,width=500, height=500, imagem=imagem)
 container.place(x=120,y=30)
 
 rightframe = Frame(container, width=250, height=500, relief="raise")
