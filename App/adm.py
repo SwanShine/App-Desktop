@@ -36,7 +36,6 @@ input_senha.pack(pady=10)
 
 
 
-
 leftframe =Frame(janela_principal, width=250, height=500, relief="raise", bg="blue")
 leftframe.pack(side="left",fill="both")
 
