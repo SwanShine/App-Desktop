@@ -3,6 +3,7 @@ import customtkinter as ctk #Importando a biblioteca grafica
 import conexaoDB
 from tkinter import Frame
 from tkinter import font
+from tkinter import messagebox
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton
 from PIL import ImageTk, Image
 import pyglet
@@ -20,6 +21,47 @@ janela_principal.minsize(width=500, height=500) #Definindo a resposividade da ja
 
 #Função
 
+def login(usuario, senha):
+    try:
+        # Conexão com o banco de dados
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="glamtech"
+        )
+
+        cursor = conn.cursor()
+
+        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
+        dados = (usuario, senha)
+
+        cursor.execute(consulta, dados)
+
+        if cursor.fetchone():
+            return True
+        else:
+            return False
+
+    except mysql.connector.Error as erro:
+        print("Erro ao conectar ao MySQL:", erro)
+        return False
+
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+# Função para validar o login quando o botão for pressionado
+def validar_login():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    if login(usuario, senha):
+       messagebox.showinfo("Login", "Login bem-sucedido!")
+    else:
+      messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+
 
 
 
@@ -28,17 +70,14 @@ janela_principal.minsize(width=500, height=500) #Definindo a resposividade da ja
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
 
 #Carregando a fonte
-caminho_fonte = "fontes/Inter-Regular"
+caminho_fonte = "fontes/Inter-Regular.ttf"
 pyglet.font.add_file(caminho_fonte)
-
-
-
 
 #Tela
 rightframe = Frame(janela_principal, width=250, height=500, relief="raise",bg="orange")
 rightframe.pack(side="right",fill="both")
 
-label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario",font="Inter-Regular")
+label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario",font=("Inter-Regular", 16,"italic"))
 label_usuario.pack(pady=10)
 
 input_usuario = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
@@ -50,7 +89,7 @@ label_senha.pack(pady=10)
 input_senha = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
 input_senha.pack(pady=10)
 
-button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black",font=("Inter-Regular", 16, "italic")) 
+button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black",command=validar_login,font=("Inter-Regular", 16, "italic")) 
 button_entrar.place(x=50,y=330)
 
 leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
