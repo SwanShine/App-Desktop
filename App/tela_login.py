@@ -1,13 +1,12 @@
 import mysql.connector #Biblioteca para conexão com banco de dados  
 import customtkinter as ctk #Importando a biblioteca grafica
-import conexaoDB
-from tkinter import Frame
-from tkinter import font
-from tkinter import messagebox
+from tkinter import Frame, font, messagebox
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton
 from PIL import ImageTk, Image
 import pyglet
 import conexaoDB
+import adm
+
 
 
         
@@ -21,7 +20,7 @@ janela_principal.minsize(width=500, height=500) #Definindo a resposividade da ja
 
 #Função
 
-def login(usuario, senha):
+def login(usuario, senha):#CONSULTAR LOGIN
     try:
         # Conexão com o banco de dados
         conn = mysql.connector.connect(
@@ -62,11 +61,24 @@ def validar_login():
     else:
       messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
 
+# Função para exibir a segunda tela após a validação do login
+def tela_administrativa():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+    
+    if login(usuario, senha):
+       adm()
+       
+    else:
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")  
 
 
+#Função VALIDAR se a segunda tela pode ser exibida
+def login_valido():
+    validar_login()
+    tela_administrativa()
 
 #Carregando a Imagem
- 
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
 
 #Carregando a fonte
@@ -99,3 +111,4 @@ label_imagem = CTkLabel(leftframe,width=250,height=250,image=imagem,text="")
 label_imagem.place(x=-100,y=-10)
 
 janela_principal.mainloop()
+
