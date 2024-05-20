@@ -2,6 +2,7 @@ import mysql.connector #Biblioteca para conexão com banco de dados
 import customtkinter as ctk #Importando a biblioteca grafica
 import conexaoDB
 from tkinter import Frame
+from tkinter import font
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton
 from PIL import ImageTk, Image
 import pyglet
@@ -19,10 +20,7 @@ janela_principal.minsize(width=500, height=500) #Definindo a resposividade da ja
 
 #Função
 
-def login(conexaoDB,input_usuario,input_senha):
-    
-     cursor = conn.cursor()
-      cursor.execute("SELECT * FROM minha_tabela")
+
 
 
 #Carregando a Imagem
@@ -30,27 +28,29 @@ def login(conexaoDB,input_usuario,input_senha):
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
 
 #Carregando a fonte
+caminho_fonte = "fontes/Inter-Regular"
+pyglet.font.add_file(caminho_fonte)
 
-#pyglet.font.add_file('fontes/inter.ttf')
+
 
 
 #Tela
 rightframe = Frame(janela_principal, width=250, height=500, relief="raise",bg="orange")
 rightframe.pack(side="right",fill="both")
 
-label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario",font=("Courier", 16, "italic"))
+label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario",font="Inter-Regular")
 label_usuario.pack(pady=10)
 
-input_usuario = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Courier", 16, "italic"))
+input_usuario = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
 input_usuario.pack(pady=10)
 
-label_senha = ctk.CTkLabel(rightframe, width=250, height=50, text="Senha",font=("Courier", 16, "italic"))
+label_senha = ctk.CTkLabel(rightframe, width=250, height=50, text="Senha",font=("Inter-Regular", 16, "italic"))
 label_senha.pack(pady=10)
 
-input_senha = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Courier", 16, "italic"))
+input_senha = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
 input_senha.pack(pady=10)
 
-button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black",font=("Courier", 16, "italic")) 
+button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black",font=("Inter-Regular", 16, "italic")) 
 button_entrar.place(x=50,y=330)
 
 leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
