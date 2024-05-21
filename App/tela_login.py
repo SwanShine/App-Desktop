@@ -24,10 +24,10 @@ def login(usuario, senha):#CONSULTAR LOGIN
     try:
         # Conexão com o banco de dados
         conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="glamtech"
+        host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
+        user="admin",
+        password="swanshine2024",
+        database="SwanShine"
         )
 
         cursor = conn.cursor()
