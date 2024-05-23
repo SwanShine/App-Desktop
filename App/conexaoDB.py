@@ -6,13 +6,8 @@ try:
     conn = mysql.connector.connect(
         host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
         user="admin",
-<<<<<<< HEAD
         password="gLAHqWkvUoaxwBnm9wKD",
         database="swanshine"
-=======
-        password="swanshine2024",
-        database="SwanShine"
->>>>>>> f6ce484a7742c8fb55723f8eca126093d3da84c0
     )
 
     # Criar um objeto cursor
