@@ -26,7 +26,7 @@ def login(usuario, senha):#CONSULTAR LOGIN
         conn = mysql.connector.connect(
         host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
         user="admin",
-        password="Swanshine2024",
+        password="gLAHqWkvUoaxwBnm9wKD",
         database="swanshine"
         )
 
