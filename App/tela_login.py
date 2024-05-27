@@ -67,7 +67,8 @@ def tela_administrativa():
     senha = input_senha.get()
     
     if login(usuario, senha):
-       adm()
+       janela_adm = ctk.CTkToplevel()
+       janela_adm.title("Janela administrativa")
        
     else:
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")  
