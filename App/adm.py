@@ -3,7 +3,7 @@ import customtkinter as ctk  # Importando a biblioteca gráfica
 from tkinter import Frame
 from tkinter import font
 import conexaoDB
-import tela_login
+import App_swanshine as App_swanshine
 from tkinter import messagebox
 
 
