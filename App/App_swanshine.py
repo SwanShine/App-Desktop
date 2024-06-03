@@ -1,25 +1,19 @@
-import mysql.connector #Biblioteca para conexão com banco de dados  
-import customtkinter as ctk #Importando a biblioteca grafica
+import mysql.connector
+import customtkinter as ctk
 from tkinter import Frame, font, messagebox
-from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton
+from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from PIL import ImageTk, Image
 import pyglet
-#import conexaoDB
 
-
-
-
-        
 #Configuração da tela
-janela_principal = ctk.CTk() #Criando a janela
-janela_principal._set_appearance_mode("System") #Deixando o tema de acordo com sistema 
-janela_principal.geometry("500x500") #Definindo o tamanho inicial da tela
-janela_principal.title("Login") #Definindo o título da janela
-janela_principal.maxsize(width=500, height=500) #Definindo a resposividade da janela (Não responsivo)
-janela_principal.minsize(width=500, height=500) #Definindo a resposividade da janela (Não responsivo)
+janela_principal = ctk.CTk()
+janela_principal._set_appearance_mode("System")
+janela_principal.geometry("500x500")
+janela_principal.title("Login")
+janela_principal.maxsize(width=500, height=500)
+janela_principal.minsize(width=500, height=500)
 
-#Função
-
+# Função para fazer login
 def login(usuario, senha):
     try:
         # Conexão com o banco de dados
@@ -51,6 +45,7 @@ def login(usuario, senha):
             cursor.close()
             conn.close()
 
+# Função para validar o login
 def validar_login():
     usuario = input_usuario.get()
     senha = input_senha.get()
@@ -62,81 +57,85 @@ def validar_login():
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
         return False
 
+# Função para abrir a tela administrativa após o login bem-sucedido
 def tela_administrativa():
-    # Definindo a janela administrativa
-    tela_administrativa = ctk.CTkToplevel(janela_principal)
-    tela_administrativa.title("Janela administrativa")
-    tela_administrativa._set_appearance_mode("System")  # Deixando o tema de acordo com sistema
-    tela_administrativa.geometry("500x500")  # Definindo o tamanho inicial da tela
-    tela_administrativa.maxsize(width=500, height=500)  # Definindo a responsividade da tela (Não responsivo)
-    tela_administrativa.minsize(width=500, height=500)  # Definindo a responsividade da tela (Não responsivo)
+    if validar_login():
+        # Definindo a janela administrativa
+        tela_admin = ctk.CTkToplevel(janela_principal)
+        tela_admin.title("Janela administrativa")
+        tela_admin._set_appearance_mode("System")
+        tela_admin.geometry("500x500")
+        tela_admin.maxsize(width=500, height=500)
+        tela_admin.minsize(width=500, height=500)
 
-    rightframe = Frame(tela_administrativa, width=250, height=500, relief="raise", bg="blue")
-    rightframe.pack(side="right", fill="both")
+        rightframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+        rightframe.pack(side="right", fill="both")
 
-    input_usuario_admin = ctk.CTkEntry(rightframe, width=250, height=50)
-    input_usuario_admin.pack(pady=10)
+        input_usuario_admin = ctk.CTkEntry(rightframe, width=250, height=50)
+        input_usuario_admin.pack(pady=10)
 
-    input_senha_admin = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
-    input_senha_admin.pack(pady=10)
+        input_senha_admin = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
+        input_senha_admin.pack(pady=10)
 
-    leftframe = Frame(tela_administrativa, width=250, height=500, relief="raise", bg="blue")
-    leftframe.pack(side="left", fill="both")
+        leftframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+        leftframe.pack(side="left", fill="both")
 
-    label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuário")
-    label_usuario.pack(pady=10)
+        label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuário")
+        label_usuario.pack(pady=10)
 
-    label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
-    label_senha.pack(pady=10)
+        label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
+        label_senha.pack(pady=10)
 
-    button_editar = ctk.CTkButton(tela_administrativa, text="EDITAR", fg_color="black")
-    button_editar.place(x=190, y=400)
+        button_editar = ctk.CTkButton(tela_admin, text="EDITAR", fg_color="black")
+        button_editar.place(x=190, y=400)
 
-    button_deletar1 = ctk.CTkButton(tela_administrativa, text="DELETAR", fg_color="black")
-    button_deletar1.place(x=40, y=400)
+        button_deletar1 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
+        button_deletar1.place(x=40, y=400)
 
-    button_deletar2 = ctk.CTkButton(tela_administrativa, text="DELETAR", fg_color="black")
-    button_deletar2.place(x=350, y=400)
+        button_deletar2 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
+        button_deletar2.place(x=350, y=400)
+        
+        
 
+# Função para verificar o login e abrir a tela administrativa
 def login_valido():
     if validar_login():
-        janela_principal.destroy()  # Corrigido para ser um método
         tela_administrativa()
+        janela_principal.destroy()  # Fechar a tela de login após abrir a tela administrativa
     else:
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
 
-
-#Carregando a Imagem
+# Carregando a Imagem
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
 
-#Carregando a fonte
+# Carregando a fonte
 caminho_fonte = "fontes/Inter-Regular.ttf"
 pyglet.font.add_file(caminho_fonte)
 
-#Tela
-rightframe = Frame(janela_principal, width=250, height=500, relief="raise",bg="orange")
-rightframe.pack(side="right",fill="both")
+# Tela
+rightframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
+rightframe.pack(side="right", fill="both")
 
-label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario",font=("Inter-Regular", 16,"italic"))
+label_usuario = ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario", font=("Inter-Regular", 16,"italic"))
 label_usuario.pack(pady=10)
 
-input_usuario = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
+input_usuario = ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
 input_usuario.pack(pady=10)
 
-label_senha = ctk.CTkLabel(rightframe, width=250, height=50, text="Senha",font=("Inter-Regular", 16, "italic"))
+label_senha = ctk.CTkLabel(rightframe, width=250, height=50, text="Senha", font=("Inter-Regular", 16, "italic"))
 label_senha.pack(pady=10)
 
-input_senha = ctk.CTkEntry(rightframe, width=250, height=50,fg_color="white",font=("Inter-Regular", 16, "italic"))
+input_senha = ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
 input_senha.pack(pady=10)
 
-button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black",command=login_valido,font=("Inter-Regular", 16, "italic")) 
-button_entrar.place(x=50,y=330)
+button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido, font=("Inter-Regular", 16, "italic"))
+button_entrar.place(x=50, y=330)
 
 leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
-leftframe.pack(side="left",fill="both")
+leftframe.pack(side="left", fill="both")
 
-label_imagem = CTkLabel(leftframe,width=250,height=250,image=imagem,text="")
-label_imagem.place(x=-100,y=-10)
+label_imagem = CTkLabel(leftframe, width=250, height=250, image=imagem, text="")
+label_imagem.place(x=-100, y=-10)
+
 
 janela_principal.mainloop()
-
