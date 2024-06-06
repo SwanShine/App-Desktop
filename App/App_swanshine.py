@@ -95,7 +95,30 @@ def tela_administrativa():
         button_deletar2 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
         button_deletar2.place(x=350, y=400)
         
+def tela_selecionar_usuario():
+    if validar_login():
+        # Definindo a janela id
+        tela_id = ctk.CTkToplevel(janela_principal)
+        tela_id._set_appearance_mode("System")
+        tela_id.geometry("300x300")
+        tela_id.title("Digite o ID do Usuário")
+        tela_id.maxsize(width=300, height=300)
+        tela_id.minsize(width=300, height=300)
         
+        frame_central = Frame(tela_id,bg="orange")
+        frame_central.pack(fill="both")
+        # Adicionando o label
+        label_id = ctk.CTkLabel(frame_central, text="Digite o ID do Usuário para fazer a consulta de dados")
+        label_id.pack(pady=10)
+
+        # Adicionando a entrada de texto
+        input_id = ctk.CTkEntry(frame_central)
+        input_id.pack(pady=10)
+        #Adicionando O Botão
+        botao_consultar = CTkButton(frame_central,text="Consultar")
+        botao_consultar.pack()
+
+
 
 # Função para verificar o login e abrir a tela administrativa
 def login_valido():
