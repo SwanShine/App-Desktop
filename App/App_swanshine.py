@@ -81,32 +81,57 @@ def tela_administrativa():
     tela_admin.maxsize(width=500, height=500)
     tela_admin.minsize(width=500, height=500)
 
-    rightframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+    rightframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="orange")
     rightframe.pack(side="right", fill="both")
 
-    input_usuario_admin = ctk.CTkEntry(rightframe, width=250, height=50)
-    input_usuario_admin.pack(pady=10)
+    input_cpf = ctk.CTkEntry(rightframe, width=250, height=50)
+    input_cpf.pack(pady=10)
 
-    input_senha_admin = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
-    input_senha_admin.pack(pady=10)
+    input_email = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
+    input_email.pack(pady=10)
+    
+    input_endereco = ctk.CTkEntry(rightframe, width=250, height=50)
+    input_endereco.pack(pady=10)
 
-    leftframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+    input_id= ctk.CTkEntry(rightframe, width=250, height=50, show='*')
+    input_id.pack(pady=10)
+    
+    input_nome = ctk.CTkEntry(rightframe, width=250, height=50)
+    input_nome.pack(pady=10)
+
+    input_telefone = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
+    input_telefone.pack(pady=10)
+
+    leftframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="orange")
     leftframe.pack(side="left", fill="both")
 
-    label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuário")
-    label_usuario.pack(pady=10)
+    label_cpf = ctk.CTkLabel(leftframe, width=250, height=50, text="CPF")
+    label_cpf.pack(pady=10)
 
-    label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
-    label_senha.pack(pady=10)
+    label_email = ctk.CTkLabel(leftframe, width=250, height=50, text="Email")
+    label_email.pack(pady=10)
+    
+    label_endereco = ctk.CTkLabel(leftframe, width=250, height=50, text="Endereço")
+    label_endereco.pack(pady=10)
+
+    label_id = ctk.CTkLabel(leftframe, width=250, height=50, text="ID")
+    label_id.pack(pady=10)
+    
+    label_nome = ctk.CTkLabel(leftframe, width=250, height=50, text="Nome")
+    label_nome.pack(pady=10)
+
+    label_telefone = ctk.CTkLabel(leftframe, width=250, height=50, text="Telefone")
+    label_telefone.pack(pady=10)
+    
 
     button_editar = ctk.CTkButton(tela_admin, text="EDITAR", fg_color="black")
-    button_editar.place(x=190, y=400)
+    button_editar.place(x=190, y=450)
 
     button_deletar1 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
-    button_deletar1.place(x=40, y=400)
+    button_deletar1.place(x=40, y=450)
 
-    button_deletar2 = ctk.CTkButton(tela_admin, text="voltar", fg_color="black", command=fechar_tela_administrativa)
-    button_deletar2.place(x=350, y=400)
+    button_deletar2 = ctk.CTkButton(tela_admin, text="VOLTAR", fg_color="black", command=fechar_tela_administrativa)
+    button_deletar2.place(x=345, y=450)
 
         
 def tela_selecionar_usuario():
@@ -138,7 +163,9 @@ def tela_selecionar_usuario():
     botao_voltar = CTkButton(tela_id, text="Voltar", command=fechar_tela_id)
     botao_voltar.place(x=5, y=90)
 
-def consulta_Id(label_id ):
+def consulta_Id(CPF,EMAIL,ENDERECO,ID,NOME,TELEFONE):
+    tela_administrativa()
+    
     try:
         # Conexão com o banco de dados
         conn = mysql.connector.connect(
@@ -150,8 +177,9 @@ def consulta_Id(label_id ):
 
         cursor = conn.cursor()
 
-        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
-        dados = (label_id)
+        consulta = "SELECT * FROM clientes WHERE Id = %s "
+        dados = (CPF,EMAIL,ENDERECO,ID,NOME,TELEFONE)
+        print(CPF,EMAIL,ENDERECO,ID,NOME,TELEFONE)
 
         cursor.execute(consulta, dados)
 
