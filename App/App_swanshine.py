@@ -59,11 +59,9 @@ def validar_login():
 
 # Função para abrir a tela administrativa após o login bem-sucedido
 def tela_administrativa():
-    if validar_login():
         # Definindo a janela administrativa
         tela_admin = ctk.CTkToplevel(janela_principal)
         tela_admin.title("Janela administrativa")
-        tela_admin._set_appearance_mode("System")
         tela_admin.geometry("500x500")
         tela_admin.maxsize(width=500, height=500)
         tela_admin.minsize(width=500, height=500)
@@ -122,11 +120,14 @@ def tela_selecionar_usuario():
 
 # Função para verificar o login e abrir a tela administrativa
 def login_valido():
-    if validar_login():
-        tela_administrativa()
-        janela_principal.destroy()  # Fechar a tela de login após abrir a tela administrativa
-    else:
+    try:
+        validar_login()
+        tela_administrativa()  # Exibe a tela administrativa se o login for válido
+    except validar_login:  # Captura exceções que ocorrerem durante a validação do login
+        janela_principal.withdraw()  # Fecha a janela de login em caso de falha
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+
+
 
 # Carregando a Imagem
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
