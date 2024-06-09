@@ -56,78 +56,145 @@ def validar_login():
     else:
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
         return False
+    
+def validar_login_print():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    if login(usuario, senha):
+        print("Login", "Login bem-sucedido!")
+        return True
+    else:
+        print("Login", "Login falhou. Verifique suas credenciais.")
+        return False
 
 # Função para abrir a tela administrativa após o login bem-sucedido
 def tela_administrativa():
-        # Definindo a janela administrativa
-        tela_admin = ctk.CTkToplevel(janela_principal)
-        tela_admin.title("Janela administrativa")
-        tela_admin.geometry("500x500")
-        tela_admin.maxsize(width=500, height=500)
-        tela_admin.minsize(width=500, height=500)
+    def fechar_tela_administrativa():
+        tela_admin.destroy()
+        tela_selecionar_usuario()
 
-        rightframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
-        rightframe.pack(side="right", fill="both")
+    # Definindo a janela administrativa
+    tela_admin = ctk.CTkToplevel(janela_principal)
+    tela_admin.title("Janela administrativa")
+    tela_admin.geometry("500x500")
+    tela_admin.maxsize(width=500, height=500)
+    tela_admin.minsize(width=500, height=500)
 
-        input_usuario_admin = ctk.CTkEntry(rightframe, width=250, height=50)
-        input_usuario_admin.pack(pady=10)
+    rightframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+    rightframe.pack(side="right", fill="both")
 
-        input_senha_admin = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
-        input_senha_admin.pack(pady=10)
+    input_usuario_admin = ctk.CTkEntry(rightframe, width=250, height=50)
+    input_usuario_admin.pack(pady=10)
 
-        leftframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
-        leftframe.pack(side="left", fill="both")
+    input_senha_admin = ctk.CTkEntry(rightframe, width=250, height=50, show='*')
+    input_senha_admin.pack(pady=10)
 
-        label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuário")
-        label_usuario.pack(pady=10)
+    leftframe = Frame(tela_admin, width=250, height=500, relief="raise", bg="blue")
+    leftframe.pack(side="left", fill="both")
 
-        label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
-        label_senha.pack(pady=10)
+    label_usuario = ctk.CTkLabel(leftframe, width=250, height=50, text="Usuário")
+    label_usuario.pack(pady=10)
 
-        button_editar = ctk.CTkButton(tela_admin, text="EDITAR", fg_color="black")
-        button_editar.place(x=190, y=400)
+    label_senha = ctk.CTkLabel(leftframe, width=250, height=50, text="Senha")
+    label_senha.pack(pady=10)
 
-        button_deletar1 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
-        button_deletar1.place(x=40, y=400)
+    button_editar = ctk.CTkButton(tela_admin, text="EDITAR", fg_color="black")
+    button_editar.place(x=190, y=400)
 
-        button_deletar2 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
-        button_deletar2.place(x=350, y=400)
+    button_deletar1 = ctk.CTkButton(tela_admin, text="DELETAR", fg_color="black")
+    button_deletar1.place(x=40, y=400)
+
+    button_deletar2 = ctk.CTkButton(tela_admin, text="voltar", fg_color="black", command=fechar_tela_administrativa)
+    button_deletar2.place(x=350, y=400)
+
         
 def tela_selecionar_usuario():
-    if validar_login():
-        # Definindo a janela id
-        tela_id = ctk.CTkToplevel(janela_principal)
-        tela_id._set_appearance_mode("System")
-        tela_id.geometry("300x300")
-        tela_id.title("Digite o ID do Usuário")
-        tela_id.maxsize(width=300, height=300)
-        tela_id.minsize(width=300, height=300)
+
+    def fechar_tela_id():
+        tela_id.destroy()
+        janela_principal.deiconify()
         
-        frame_central = Frame(tela_id,bg="orange")
-        frame_central.pack(fill="both")
-        # Adicionando o label
-        label_id = ctk.CTkLabel(frame_central, text="Digite o ID do Usuário para fazer a consulta de dados")
-        label_id.pack(pady=10)
+    def abir_tela_admin():
+        tela_administrativa()
+        tela_id.withdraw()
+    
+    tela_id = ctk.CTkToplevel(janela_principal)
+    tela_id.title("Consulta de ID")
+    tela_id.geometry("300x300")
+    tela_id.maxsize(width=300, height=300)
+    tela_id.minsize(width=300, height=300)
 
-        # Adicionando a entrada de texto
-        input_id = ctk.CTkEntry(frame_central)
-        input_id.pack(pady=10)
-        #Adicionando O Botão
-        botao_consultar = CTkButton(frame_central,text="Consultar")
-        botao_consultar.pack()
+    label_id = ctk.CTkLabel(tela_id, text="Digite o ID do Usuário para fazer a consulta de dados")
+    label_id.pack(pady=10)
 
+    input_id = ctk.CTkEntry(tela_id)
+    input_id.pack(pady=10)
 
+    botao_consultar = CTkButton(tela_id, text="Consultar", command=abir_tela_admin)
+    botao_consultar.place(x=150, y=90)
 
-# Função para verificar o login e abrir a tela administrativa
-def login_valido():
+ 
+    botao_voltar = CTkButton(tela_id, text="Voltar", command=fechar_tela_id)
+    botao_voltar.place(x=5, y=90)
+
+def consulta_Id(label_id ):
     try:
-        validar_login()
-        tela_administrativa()  # Exibe a tela administrativa se o login for válido
+        # Conexão com o banco de dados
+        conn = mysql.connector.connect(
+            host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="gLAHqWkvUoaxwBnm9wKD",
+            database="swanshine"
+        )
+
+        cursor = conn.cursor()
+
+        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
+        dados = (label_id)
+
+        cursor.execute(consulta, dados)
+
+        if cursor.fetchone():
+            return True
+        else:
+            return False
+
+    except mysql.connector.Error as erro:
+        print("Erro ao conectar ao MySQL:", erro)
+        return False
+
+    finally:
+        # Garantindo que a conexão com o banco de dados seja sempre fechada
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+    
+# Função para verificar o login e abrir a tela administrativa
+def login_valido_tela_adm():
+    try:
+        
+            tela_administrativa()  # Exibe a tela administrativa se o login for válido
     except validar_login:  # Captura exceções que ocorrerem durante a validação do login
         janela_principal.withdraw()  # Fecha a janela de login em caso de falha
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-
-
+    finally:
+        if validar_login_print():
+            janela_principal.withdraw()
+        pass
+    
+def login_valido_tela_selecionar_usuario():
+    try:
+        if validar_login():
+            tela_selecionar_usuario()  # Exibe a tela administrativa se o login for válido
+    except validar_login:  # Captura exceções que ocorrerem durante a validação do login
+        janela_principal.withdraw()  # Fecha a janela de login em caso de falha
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+    finally:
+        if validar_login_print():
+            janela_principal.withdraw()
+        pass
 
 # Carregando a Imagem
 imagem = ImageTk.PhotoImage(Image.open("Imagens/Logo_tela_de_login.png"))
@@ -152,7 +219,7 @@ label_senha.pack(pady=10)
 input_senha = ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
 input_senha.pack(pady=10)
 
-button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido, font=("Inter-Regular", 16, "italic"))
+button_entrar = ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
 button_entrar.place(x=50, y=330)
 
 leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
