@@ -132,8 +132,7 @@ def tela_administrativa():
 
     button_deletar2 = ctk.CTkButton(tela_admin, text="VOLTAR", fg_color="black", command=fechar_tela_administrativa)
     button_deletar2.place(x=345, y=450)
-
-        
+     
 def tela_selecionar_usuario():
 
     def fechar_tela_id():
