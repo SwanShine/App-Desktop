@@ -162,65 +162,48 @@ def tela_administrativa():
                 tree.insert('', 'end', values=row)
             conn.close()
             
-    def fechar_jamela_admin():
+    def fechar_janela_admin():
         janela_admin.withdraw()
         janela_principal.deiconify()
 
     janela_admin = tk.Toplevel(janela_principal)
     janela_admin.title("Consulta e Edição de Registros")
+    janela_admin.geometry("1280x720")
+
+    estilo = ttk.Style()
+    estilo.theme_use('clam')
 
     frame_input = ttk.Frame(janela_admin)
-    frame_input.pack(pady=10)
+    frame_input.pack(pady=10, padx=10, fill='x')
 
-    label_nome = ttk.Label(frame_input, text="Nome:")
-    label_nome.grid(row=0, column=0, padx=5, pady=5, sticky='e')
-    entry_nome = ttk.Entry(frame_input, width=30)
-    entry_nome.grid(row=0, column=1, padx=5, pady=5)
+    labels = ['Nome', 'CPF', 'Email', 'Endereço', 'Telefone', 'Campo', 'Novo Valor', 'Filtrar por ID Cliente']
+    entries = {}
+    for i, label in enumerate(labels):
+        ttk.Label(frame_input, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+        if label == 'Campo':
+            campos_disponiveis = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone']
+            combo_campos = ttk.Combobox(frame_input, values=campos_disponiveis, width=27)
+            combo_campos.grid(row=i, column=1, padx=5, pady=5)
+        else:
+            entries[label] = ttk.Entry(frame_input, width=30)
+            entries[label].grid(row=i, column=1, padx=5, pady=5)
 
-    label_cpf = ttk.Label(frame_input, text="CPF:")
-    label_cpf.grid(row=1, column=0, padx=5, pady=5, sticky='e')
-    entry_cpf = ttk.Entry(frame_input, width=30)
-    entry_cpf.grid(row=1, column=1, padx=5, pady=5)
-
-    label_email = ttk.Label(frame_input, text="Email:")
-    label_email.grid(row=2, column=0, padx=5, pady=5, sticky='e')
-    entry_email = ttk.Entry(frame_input, width=30)
-    entry_email.grid(row=2, column=1, padx=5, pady=5)
-
-    label_endereco = ttk.Label(frame_input, text="Endereço:")
-    label_endereco.grid(row=3, column=0, padx=5, pady=5, sticky='e')
-    entry_endereco = ttk.Entry(frame_input, width=30)
-    entry_endereco.grid(row=3, column=1, padx=5, pady=5)
-
-    label_telefone = ttk.Label(frame_input, text="Telefone:")
-    label_telefone.grid(row=4, column=0, padx=5, pady=5, sticky='e')
-    entry_telefone = ttk.Entry(frame_input, width=30)
-    entry_telefone.grid(row=4, column=1, padx=5, pady=5)
-
-    label_campos = ttk.Label(frame_input, text="Campo:")
-    label_campos.grid(row=5, column=0, padx=5, pady=5, sticky='e')
-    campos_disponiveis = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone']
-    combo_campos = ttk.Combobox(frame_input, values=campos_disponiveis, width=27)
-    combo_campos.grid(row=5, column=1, padx=5, pady=5)
-
-    label_novo_valor = ttk.Label(frame_input, text="Novo Valor:")
-    label_novo_valor.grid(row=6, column=0, padx=5, pady=5, sticky='e')
-    entry_novo_valor = ttk.Entry(frame_input, width=30)
-    entry_novo_valor.grid(row=6, column=1, padx=5, pady=5)
-
-    label_id_cliente = ttk.Label(frame_input, text="Filtrar por ID Cliente:")
-    label_id_cliente.grid(row=7, column=0, padx=5, pady=5, sticky='e')
-    entry_id_cliente = ttk.Entry(frame_input, width=10)
-    entry_id_cliente.grid(row=7, column=1, padx=5, pady=5)
+    entry_nome, entry_cpf, entry_email, entry_endereco, entry_telefone, entry_novo_valor, entry_id_cliente = (
+        entries['Nome'], entries['CPF'], entries['Email'], entries['Endereço'], entries['Telefone'], 
+        entries['Novo Valor'], entries['Filtrar por ID Cliente']
+    )
 
     btn_adicionar = ttk.Button(frame_input, text="Adicionar", command=adicionar_registro)
-    btn_adicionar.grid(row=8, column=1, padx=5, pady=5, sticky='e')
+    btn_adicionar.grid(row=len(labels), column=1, padx=5, pady=5, sticky='e')
 
-    btn_editar = ttk.Button(janela_admin, text="Editar Campo Selecionado", command=editar_registro)
-    btn_editar.pack(pady=5)
+    frame_botoes = ttk.Frame(janela_admin)
+    frame_botoes.pack(pady=10)
 
-    btn_filtrar = ttk.Button(janela_admin, text="Filtrar por ID Cliente", command=filtrar_por_id_cliente)
-    btn_filtrar.pack(pady=5)
+    btn_editar = ttk.Button(frame_botoes, text="Editar Campo Selecionado", command=editar_registro)
+    btn_editar.grid(row=0, column=0, padx=10)
+
+    btn_filtrar = ttk.Button(frame_botoes, text="Filtrar por ID Cliente", command=filtrar_por_id_cliente)
+    btn_filtrar.grid(row=0, column=1, padx=10)
 
     tree = ttk.Treeview(janela_admin, columns=('ID', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone'), show='headings')
     tree.heading('ID', text='ID')
@@ -229,16 +212,19 @@ def tela_administrativa():
     tree.heading('Endereço', text='Endereço')
     tree.heading('Nome', text='Nome')
     tree.heading('Telefone', text='Telefone')
-    tree.pack()
+    tree.pack(fill='both', expand=True, pady=10)
 
-    btn_atualizar = ttk.Button(janela_admin, text="Atualizar Lista", command=exibir_registros)
-    btn_atualizar.pack(pady=10)
+    frame_botoes_inferiores = ttk.Frame(janela_admin)
+    frame_botoes_inferiores.pack(pady=10)
 
-    btn_deletar = ttk.Button(janela_admin, text="Deletar Selecionado", command=deletar_registro)
-    btn_deletar.pack()
+    btn_atualizar = ttk.Button(frame_botoes_inferiores, text="Atualizar Lista", command=exibir_registros)
+    btn_atualizar.grid(row=0, column=0, padx=20)
+
+    btn_deletar = ttk.Button(frame_botoes_inferiores, text="Deletar Selecionado", command=deletar_registro)
+    btn_deletar.grid(row=0, column=1, padx=20)
     
-    btn_voltar = ttk.Button(janela_admin, text="Voltar", command=fechar_jamela_admin)
-    btn_voltar.pack()
+    btn_voltar = ttk.Button(frame_botoes_inferiores, text="Voltar", command=fechar_janela_admin)
+    btn_voltar.grid(row=0, column=2, padx=20)
 
     exibir_registros()
 ############
