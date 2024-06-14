@@ -227,6 +227,8 @@ def tela_administrativa():
     tree.heading('CPF', text='CPF')
     tree.heading('Email', text='Email')
     tree.heading('Endereço', text='Endereço')
+    tree.heading('Nome', text='Nome')
+    tree.heading('Telefone', text='Telefone')
     tree.pack()
 
     btn_atualizar = ttk.Button(janela_admin, text="Atualizar Lista", command=exibir_registros)
