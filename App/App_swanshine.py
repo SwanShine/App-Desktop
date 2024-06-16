@@ -1,11 +1,10 @@
+import tkinter as tk
+from tkinter import Frame, messagebox, ttk
 import mysql.connector
 import customtkinter as ctk
-from tkinter import Frame, font, messagebox
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from PIL import ImageTk, Image
 import pyglet
-import tkinter as tk
-from tkinter import ttk
 
 #Configuração da tela
 janela_principal = ctk.CTk()
@@ -227,8 +226,7 @@ def tela_administrativa():
     btn_voltar.grid(row=0, column=2, padx=20)
 
     exibir_registros()
-############
-     
+
     
 # Função para verificar o login e abrir a tela administrativa
 def login_valido_tela_adm():
