@@ -82,8 +82,7 @@ def tela_administrativa():
                 database="swanshine"
             )
             cursor = conn.cursor()
-            if conn.is_connected():
-                print("Conectado ao banco de dados")
+            print("Conectado ao banco de dados")
             return conn, cursor
         except mysql.connector.Error as erro:
             print("Erro ao conectar ao MySQL:", erro)
@@ -94,8 +93,7 @@ def tela_administrativa():
         if conn and cursor:
             cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes")
             rows = cursor.fetchall()
-            for row in tree.get_children():
-                tree.delete(row)
+            tree.delete(*tree.get_children())
             for row in rows:
                 tree.insert('', 'end', values=row)
             conn.close()
@@ -108,7 +106,8 @@ def tela_administrativa():
         telefone = entry_telefone.get()
         conn, cursor = conectar_bd()
         if conn and cursor:
-            cursor.execute("INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)", (cpf, email, endereco, nome, telefone))
+            cursor.execute("INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)",
+                           (cpf, email, endereco, nome, telefone))
             conn.commit()
             conn.close()
             exibir_registros()
@@ -156,8 +155,7 @@ def tela_administrativa():
         if conn and cursor:
             cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes WHERE Id_clientes = %s", (id_cliente,))
             rows = cursor.fetchall()
-            for row in tree.get_children():
-                tree.delete(row)
+            tree.delete(*tree.get_children())
             for row in rows:
                 tree.insert('', 'end', values=row)
             conn.close()
@@ -173,13 +171,13 @@ def tela_administrativa():
     estilo = ttk.Style()
     estilo.theme_use('clam')
 
-    frame_input = ttk.Frame(janela_admin)
-    frame_input.pack(pady=10, padx=10, fill='x')
+    frame_input = ttk.Frame(janela_admin, padding="10")
+    frame_input.pack(fill='x')
 
     labels = ['Nome', 'CPF', 'Email', 'Endereço', 'Telefone', 'Campo', 'Novo Valor', 'Filtrar por ID Cliente']
     entries = {}
     for i, label in enumerate(labels):
-        ttk.Label(frame_input, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+        ttk.Label(frame_input, text=label, anchor='e', width=15).grid(row=i, column=0, padx=5, pady=5, sticky='e')
         if label == 'Campo':
             campos_disponiveis = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone']
             combo_campos = ttk.Combobox(frame_input, values=campos_disponiveis, width=27)
@@ -196,7 +194,7 @@ def tela_administrativa():
     btn_adicionar = ttk.Button(frame_input, text="Adicionar", command=adicionar_registro)
     btn_adicionar.grid(row=len(labels), column=1, padx=5, pady=5, sticky='e')
 
-    frame_botoes = ttk.Frame(janela_admin)
+    frame_botoes = ttk.Frame(janela_admin, padding="10")
     frame_botoes.pack(pady=10)
 
     btn_editar = ttk.Button(frame_botoes, text="Editar Campo Selecionado", command=editar_registro)
@@ -212,9 +210,9 @@ def tela_administrativa():
     tree.heading('Endereço', text='Endereço')
     tree.heading('Nome', text='Nome')
     tree.heading('Telefone', text='Telefone')
-    tree.pack(fill='both', expand=True, pady=10)
+    tree.pack(fill='both', expand=True, padx=10, pady=10)
 
-    frame_botoes_inferiores = ttk.Frame(janela_admin)
+    frame_botoes_inferiores = ttk.Frame(janela_admin, padding="10")
     frame_botoes_inferiores.pack(pady=10)
 
     btn_atualizar = ttk.Button(frame_botoes_inferiores, text="Atualizar Lista", command=exibir_registros)
