@@ -14,7 +14,7 @@ root.geometry("400x600+850+50")
 btnState = False
 
 # loading Navbar icon image:
-navIcon = PhotoImage(file="menu.png")
+navIcon = PhotoImage(file="open.png")
 closeIcon = PhotoImage(file="close.png")
 
 # setting switch function:
