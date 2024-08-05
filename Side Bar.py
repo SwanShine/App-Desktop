@@ -1,7 +1,10 @@
 import tkinter as tk
-from tkinter import PhotoImage, messagebox
-import customtkinter as Ctk
+from tkinter import Frame, PhotoImage, messagebox, ttk
 import mysql.connector
+import customtkinter as Ctk
+from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
+from PIL import ImageTk, Image
+import pyglet
 
 # Dicionário de cores para os temas
 colors_light = {
@@ -20,20 +23,8 @@ colors_dark = {
 
 current_theme = colors_light  # Tema inicial
 
-# Configuração da janela principal
-root = Ctk.CTk()
-root.title("SwanShine")
-root.geometry("400x600+850+50")
-
 # Estado do botão de alternância
 btnState = False
-
-# Carregamento das imagens dos ícones
-try:
-    navIcon = PhotoImage(file="open.png")
-    closeIcon = PhotoImage(file="close.png")
-except Exception as e:
-    print(f"Erro ao carregar imagens: {e}")
 
 # Função para alterar a cor de fundo dos botões quando o mouse passa sobre eles
 def on_enter(button):
@@ -53,16 +44,16 @@ def switch():
 # Função para animar o fechamento da Navbar
 def close_animation(x):
     if x >= -300:
-        navRoot.place(x=x, y=0)
-        root.after(10, close_animation, x - 10)
+        navmenu_inicial.place(x=x, y=0)
+        menu_inicial.after(10, close_animation, x - 10)
     else:
         update_ui_for_navbar_closed()
 
 # Função para animar a abertura da Navbar
 def open_animation(x):
     if x <= 0:
-        navRoot.place(x=x, y=0)
-        root.after(10, open_animation, x + 10)
+        navmenu_inicial.place(x=x, y=0)
+        menu_inicial.after(10, open_animation, x + 10)
     else:
         update_ui_for_navbar_open()
 
@@ -70,7 +61,7 @@ def open_animation(x):
 def update_ui_for_navbar_closed():
     homeLabel.configure(fg_color=current_theme["accent"], text_color=current_theme["background"])
     topFrame.configure(fg_color=current_theme["accent"])
-    root.configure(fg_color=current_theme["background"])
+    menu_inicial.configure(fg_color=current_theme["background"])
     global btnState
     btnState = False
 
@@ -78,7 +69,7 @@ def update_ui_for_navbar_closed():
 def update_ui_for_navbar_open():
     homeLabel.configure(fg_color=current_theme["background"], text_color=current_theme["foreground"])
     topFrame.configure(fg_color=current_theme["background"])
-    root.configure(fg_color=current_theme["background"])
+    menu_inicial.configure(fg_color=current_theme["background"])
     global btnState
     btnState = True
 
@@ -98,46 +89,72 @@ def toggle_theme():
 def check_for_updates():
     messagebox.showinfo("Atualizações", "Você está usando a versão mais recente.")
 
-# Configuração do frame Navbar
-navRoot = Ctk.CTkFrame(root, fg_color=current_theme["background"], height=600, width=300)
-navRoot.place(x=-300, y=0)
-
-# Rótulo de cabeçalho na Navbar
-Ctk.CTkLabel(navRoot, text="Menu", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, width=300).place(x=0, y=0)
-
-# Coordenada y dos widgets da Navbar
-y = 80
-
-# Opções no Navbar
-options = ["Profile", "Configurações", "Contato", "Sobre", "Administração"]
-
-# Botões de opções no Navbar
-for option in options:
-    button = Ctk.CTkButton(navRoot, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["button_color"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40)
-    button.place(x=25, y=y)
+# Função principal para criar o menu inicial
+def menu_inicial():
+    global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button
     
-    # Adicionar eventos de hover
-    button.bind("<Enter>", lambda event, btn=button: on_enter(btn))
-    button.bind("<Leave>", lambda event, btn=button: on_leave(btn))
+    menu_inicial = Ctk.CTkToplevel()
+    menu_inicial.title("SwanShine")
+    menu_inicial.geometry("400x600+850+50")
     
-    y += 50
+    # Carregamento das imagens dos ícones
+    try:
+        navIcon = PhotoImage(file="open.png")
+        closeIcon = PhotoImage(file="close.png")
+    except Exception as e:
+        print(f"Erro ao carregar imagens: {e}")
+        navIcon = closeIcon = None
 
-# Botão de fechar Navbar
-closeBtn = Ctk.CTkButton(navRoot, text="", image=closeIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
-closeBtn.place(x=250, y=10)
+    # Configuração do frame Navbar
+    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["background"], height=600, width=300)
+    navmenu_inicial.place(x=-300, y=0)
 
-# Barra de navegação superior
-topFrame = Ctk.CTkFrame(root, fg_color=current_theme["accent"], height=60)
-topFrame.pack(side="top", fill="x")
+    # Rótulo de cabeçalho na Navbar
+    Ctk.CTkLabel(navmenu_inicial, text="Menu", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, width=300).place(x=0, y=0)
 
-# Rótulo de cabeçalho
-homeLabel = Ctk.CTkLabel(topFrame, text="SwanShine", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, padx=20)
-homeLabel.pack(side="right", padx=10)
+    # Coordenada y dos widgets da Navbar
+    y = 80
 
-# Botão de Navbar
-navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
-navbarBtn.place(x=10, y=10)
+    # Opções no Navbar
+    options = ["Profile", "Configurações", "Contato", "Sobre", "Administração"]
 
+    # Botões de opções no Navbar
+    for option in options:
+        button = Ctk.CTkButton(navmenu_inicial, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["button_color"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40)
+        button.place(x=25, y=y)
+        
+        # Adicionar eventos de hover
+        button.bind("<Enter>", lambda event, btn=button: on_enter(btn))
+        button.bind("<Leave>", lambda event, btn=button: on_leave(btn))
+        
+        y += 50
+
+    # Botão de fechar Navbar
+    closeBtn = Ctk.CTkButton(navmenu_inicial, text="", image=closeIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
+    closeBtn.place(x=250, y=10)
+
+    # Barra de navegação superior
+    topFrame = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["accent"], height=60)
+    topFrame.pack(side="top", fill="x")
+
+    # Rótulo de cabeçalho
+    homeLabel = Ctk.CTkLabel(topFrame, text="SwanShine", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, padx=20)
+    homeLabel.pack(side="right", padx=10)
+
+    # Botão de Navbar
+    navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
+    navbarBtn.place(x=10, y=10)
+
+    # Botão para alternar o tema e verificar atualizações
+    theme_button = Ctk.CTkButton(topFrame, text="Tema Escuro", command=toggle_theme, width=100)
+    theme_button.pack(side="left", padx=10)
+
+    check_updates_button = Ctk.CTkButton(topFrame, text="Verificar Atualizações", command=check_for_updates, width=150)
+    check_updates_button.pack(side="left", padx=10)
+
+# Chama a função principal para criar o menu inicial
+if __name__ == "__main__":
+    menu_inicial()
 # Função para conectar ao banco de dados
 def conectar_bd():
     try:
@@ -260,7 +277,7 @@ def tela_administrativa():
         janela_admin.destroy()
         del janela_admin
 
-    janela_admin = Ctk.CTkToplevel(root)
+    janela_admin = Ctk.CTkToplevel(menu_inicial)
     janela_admin.title("Consulta e Edição de Registros")
     janela_admin.geometry("1280x720")
 
@@ -334,7 +351,7 @@ def tela_configuracoes():
     def buscar_atualizacoes():
         check_for_updates()
 
-    janela_configuracoes = Ctk.CTkToplevel(root)
+    janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
     janela_configuracoes.title("Configurações")
     janela_configuracoes.geometry("400x300")
 
@@ -351,14 +368,116 @@ def tela_configuracoes():
     close_button.pack(pady=10)
 
 # Adicionar funcionalidade ao botão "Configurações" no Navbar
-for button in navRoot.winfo_children():
+for button in navmenu_inicial.winfo_children():
     if button.cget("text") == "Configurações":
         button.configure(command=tela_configuracoes)
 
 # Adicionar funcionalidade ao botão "Administração" no Navbar
-for button in navRoot.winfo_children():
+for button in navmenu_inicial.winfo_children():
     if button.cget("text") == "Administração":
         button.configure(command=tela_administrativa)
 
+
+# Função para fazer login
+def login(usuario, senha):
+    try:
+        # Conexão com o banco de dados
+        conn = mysql.connector.connect(
+            host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="gLAHqWkvUoaxwBnm9wKD",
+            database="swanshine"
+        )
+
+        cursor = conn.cursor()
+
+        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
+        dados = (usuario, senha)
+
+        cursor.execute(consulta, dados)
+
+        if cursor.fetchone():
+            return True
+        else:
+            return False
+
+    except mysql.connector.Error as erro:
+        print("Erro ao conectar ao MySQL:", erro)
+        return False
+
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+# Função para validar o login
+def validar_login():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    if login(usuario, senha):
+        messagebox.showinfo("Login", "Login bem-sucedido!")
+        return True
+    else:
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+        return False
+    
+def validar_login_print():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    if login(usuario, senha):
+        print("Login", "Login bem-sucedido!")
+        return True
+    else:
+        print("Login", "Login falhou. Verifique suas credenciais.")
+        return False
+
+def login_valido_tela_selecionar_usuario():
+    try:
+        if validar_login():
+            tela_administrativa()
+    except validar_login: 
+        janela_principal.withdraw()  
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+    finally:
+        if validar_login_print():
+            janela_principal.withdraw()
+        pass
+
+#Configuração da tela
+janela_principal = Ctk.CTk()
+janela_principal._set_appearance_mode("System")
+janela_principal.geometry("500x500")
+janela_principal.title("Login")
+janela_principal.maxsize(width=500, height=500)
+janela_principal.minsize(width=500, height=500)
+
+# Tela
+rightframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
+rightframe.pack(side="right", fill="both")
+
+label_usuario = Ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario", font=("Inter-Regular", 16,"italic"))
+label_usuario.pack(pady=10)
+
+input_usuario = Ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_usuario.pack(pady=10)
+
+label_senha = Ctk.CTkLabel(rightframe, width=250, height=50, text="Senha", font=("Inter-Regular", 16, "italic"))
+label_senha.pack(pady=10)
+
+input_senha = Ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_senha.pack(pady=10)
+
+button_entrar = Ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
+button_entrar.place(x=50, y=330)
+
+leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
+leftframe.pack(side="left", fill="both")
+
+label_imagem = CTkLabel(leftframe, width=250, height=250, text="")
+label_imagem.place(x=-100, y=-10)
+
+janela_principal.mainloop()
 # Iniciar o loop principal da janela
-root.mainloop()
+
