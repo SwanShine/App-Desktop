@@ -8,14 +8,14 @@ colors_light = {
     "background": "#FFFFFF",
     "foreground": "#000000",
     "accent": "#FF8700",
-    "button_color": "#E0E0E0"  # Cor fixa dos botões no tema claro
+    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema claro
 }
 
 colors_dark = {
     "background": "#2E2E2E",
     "foreground": "#FFFFFF",
     "accent": "#FF8700",
-    "button_color": "#4F4F4F"  # Cor fixa dos botões no tema escuro
+    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema escuro
 }
 
 current_theme = colors_light  # Tema inicial
