@@ -145,12 +145,6 @@ def menu_inicial():
     navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
     navbarBtn.place(x=10, y=10)
 
-    # Botão para alternar o tema e verificar atualizações
-    theme_button = Ctk.CTkButton(topFrame, text="Tema Escuro", command=toggle_theme, width=100)
-    theme_button.pack(side="left", padx=10)
-
-    check_updates_button = Ctk.CTkButton(topFrame, text="Verificar Atualizações", command=check_for_updates, width=150)
-    check_updates_button.pack(side="left", padx=10)
 
 # Chama a função principal para criar o menu inicial
 if __name__ == "__main__":
