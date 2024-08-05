@@ -7,13 +7,15 @@ import mysql.connector
 colors_light = {
     "background": "#FFFFFF",
     "foreground": "#000000",
-    "accent": "#FF8700"
+    "accent": "#FF8700",
+    "button_color": "#E0E0E0"  # Cor fixa dos botões no tema claro
 }
 
 colors_dark = {
     "background": "#2E2E2E",
     "foreground": "#FFFFFF",
-    "accent": "#FF8700"
+    "accent": "#FF8700",
+    "button_color": "#4F4F4F"  # Cor fixa dos botões no tema escuro
 }
 
 current_theme = colors_light  # Tema inicial
@@ -38,7 +40,7 @@ def on_enter(button):
     button.configure(fg_color=current_theme["accent"])
 
 def on_leave(button):
-    button.configure(fg_color=current_theme["background"])
+    button.configure(fg_color=current_theme["button_color"])
 
 # Função para alternar o estado do Navbar
 def switch():
@@ -111,7 +113,7 @@ options = ["Profile", "Configurações", "Contato", "Sobre", "Administração"]
 
 # Botões de opções no Navbar
 for option in options:
-    button = Ctk.CTkButton(navRoot, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["background"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40)
+    button = Ctk.CTkButton(navRoot, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["button_color"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40)
     button.place(x=25, y=y)
     
     # Adicionar eventos de hover
@@ -121,7 +123,7 @@ for option in options:
     y += 50
 
 # Botão de fechar Navbar
-closeBtn = Ctk.CTkButton(navRoot, text="", image=closeIcon, fg_color=current_theme["background"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
+closeBtn = Ctk.CTkButton(navRoot, text="", image=closeIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
 closeBtn.place(x=250, y=10)
 
 # Barra de navegação superior
@@ -133,7 +135,7 @@ homeLabel = Ctk.CTkLabel(topFrame, text="SwanShine", font=("Bahnschrift", 15), f
 homeLabel.pack(side="right", padx=10)
 
 # Botão de Navbar
-navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["background"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
+navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
 navbarBtn.place(x=10, y=10)
 
 # Função para conectar ao banco de dados
