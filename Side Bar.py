@@ -73,25 +73,48 @@ def update_ui_for_navbar_open():
     global btnState
     btnState = True
 
-# Funções para cada opção do menu
+# Variáveis globais para rastrear janelas abertas
+janela_profile = None
+janela_configuracoes = None
+janela_contato = None
+janela_sobre = None
+janela_administracao = None
+
 def open_profile():
-    tela_profile = Ctk.CTkToplevel(menu_inicial)
+    global janela_profile
+    if janela_profile is None or not janela_profile.winfo_exists():
+        janela_profile = Ctk.CTkToplevel(menu_inicial)
+        janela_profile.title("Perfil")
 
 def open_configuracoes():
-    tela_config = Ctk.CTkToplevel(menu_inicial)
+    global janela_configuracoes
+    if janela_configuracoes is None or not janela_configuracoes.winfo_exists():
+        janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
+        janela_configuracoes.title("Configurações")
 
 def open_contato():
-    tela_contato = Ctk.CTkToplevel(menu_inicial)
+    global janela_contato
+    if janela_contato is None or not janela_contato.winfo_exists():
+        janela_contato = Ctk.CTkToplevel(menu_inicial)
+        janela_contato.title("Contato")
 
 def open_sobre():
-    tela_contato = Ctk.CTkToplevel(menu_inicial)
-def open_administracao():
-    
-    tela_administrativa()
-    
-def sair_menu():
-    menu_inicial.destroy()
+    global janela_sobre
+    if janela_sobre is None or not janela_sobre.winfo_exists():
+        janela_sobre = Ctk.CTkToplevel(menu_inicial)
+        janela_sobre.title("Sobre")
 
+def open_administracao():
+    global janela_administracao
+    if janela_administracao is None or not janela_administracao.winfo_exists():
+        janela_administracao = Ctk.CTkToplevel(menu_inicial)
+        janela_administracao.title("Administração")
+        
+
+def sair_menu():
+    resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
+    if resposta:
+        menu_inicial.destroy()
 # Função para buscar atualizações
 def check_for_updates():
     messagebox.showinfo("Atualizações", "Você está usando a versão mais recente.")
