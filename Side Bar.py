@@ -73,25 +73,157 @@ def update_ui_for_navbar_open():
     global btnState
     btnState = True
 
-# Função para alternar entre temas claro e escuro
-def toggle_theme():
-    global current_theme
-    if current_theme == colors_light:
-        current_theme = colors_dark
-        theme_button.configure(text="Tema Claro")
-    else:
-        current_theme = colors_light
-        theme_button.configure(text="Tema Escuro")
-    update_ui_for_navbar_open()
-    update_ui_for_navbar_closed()
+# Funções para cada opção do menu
+def open_profile():
+    tela_profile = Ctk.CTkToplevel(menu_inicial)
+
+def open_configuracoes():
+    tela_config = Ctk.CTkToplevel(menu_inicial)
+
+def open_contato():
+    tela_contato = Ctk.CTkToplevel(menu_inicial)
+
+def open_sobre():
+    tela_contato = Ctk.CTkToplevel(menu_inicial)
+def open_administracao():
+    
+    tela_administrativa()
+    
+def sair_menu():
+    menu_inicial.destroy()
 
 # Função para buscar atualizações
 def check_for_updates():
     messagebox.showinfo("Atualizações", "Você está usando a versão mais recente.")
 
+# Função para conectar ao banco de dados
+def conectar_bd():
+    try:
+        conn = mysql.connector.connect(
+            host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="gLAHqWkvUoaxwBnm9wKD",
+            database="swanshine"
+        )
+        cursor = conn.cursor()
+        return conn, cursor
+    except mysql.connector.Error as erro:
+        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao MySQL: {erro}")
+        return None, None
+
+# Função para fazer login
+def login(usuario, senha):
+    try:
+        conn, cursor = conectar_bd()
+        if conn and cursor:
+            consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
+            dados = (usuario, senha)
+            cursor.execute(consulta, dados)
+            return cursor.fetchone() is not None
+    except mysql.connector.Error as erro:
+        print("Erro ao conectar ao MySQL:", erro)
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+    return False
+
+# Função para validar o login e abrir a tela administrativa
+def login_valido_tela_selecionar_usuario():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+    if login(usuario, senha):
+        janela_principal.withdraw()
+        menu_inicial()
+    else:
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+
 # Função principal para criar o menu inicial
 def menu_inicial():
-    global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button
+    global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
+    
+    menu_inicial = Ctk.CTkToplevel()
+    menu_inicial.title("SwanShine")
+    menu_inicial.geometry("400x600+850+50")
+    
+    # Carregamento das imagens dos ícones
+    try:
+        navIcon = PhotoImage(file="open.png")
+        closeIcon = PhotoImage(file="close.png")
+    except Exception as e:
+        print(f"Erro ao carregar imagens: {e}")
+        navIcon = closeIcon = None
+
+    # Configuração do frame Navbar
+    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["background"], height=600, width=300)
+    navmenu_inicial.place(x=-300, y=0)
+
+    # Rótulo de cabeçalho na Navbar
+    Ctk.CTkLabel(navmenu_inicial, text="Menu", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, width=300).place(x=0, y=0)
+
+    # Coordenada y dos widgets da Navbar
+    y = 80
+
+    # Opções no Navbar
+    options = ["Profile", "Configurações", "Contato", "Sobre", "Administração","Sair"]
+    commands = [open_profile, open_configuracoes, open_contato, open_sobre, open_administracao,sair_menu]
+
+    # Botões de opções no Navbar
+    for option, command in zip(options, commands):
+        button = Ctk.CTkButton(navmenu_inicial, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["button_color"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40, command=command)
+        button.place(x=25, y=y)
+        
+        # Adicionar eventos de hover
+        button.bind("<Enter>", lambda event, btn=button: on_enter(btn))
+        button.bind("<Leave>", lambda event, btn=button: on_leave(btn))
+        
+        y += 50
+
+    # Botão de fechar Navbar
+    closeBtn = Ctk.CTkButton(navmenu_inicial, text="", image=closeIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
+    closeBtn.place(x=250, y=10)
+
+    # Barra de navegação superior
+    topFrame = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["accent"], height=60)
+    topFrame.pack(side="top", fill="x")
+
+    # Rótulo de cabeçalho
+    homeLabel = Ctk.CTkLabel(topFrame, text="SwanShine", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, padx=20)
+    homeLabel.pack(side="right", padx=10)
+
+    # Botão de Navbar
+    navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
+    navbarBtn.place(x=10, y=10)
+
+
+# Função para criar a tela administrativa
+def tela_administrativa():
+    # Implemente aqui o código para criar a tela administrativa
+    pass
+
+# Função para a tela principal
+def tela_principal():
+    global janela_principal, input_usuario, input_senha
+    
+    janela_principal = Ctk.CTk()  # Cria a janela principal
+    janela_principal.title("Login")
+    janela_principal.geometry("300x200")
+
+    Ctk.CTkLabel(janela_principal, text="Usuário").pack(pady=10)
+    input_usuario = Ctk.CTkEntry(janela_principal)
+    input_usuario.pack(pady=5)
+
+    Ctk.CTkLabel(janela_principal, text="Senha").pack(pady=10)
+    input_senha = Ctk.CTkEntry(janela_principal, show="*")
+    input_senha.pack(pady=5)
+
+    Ctk.CTkButton(janela_principal, text="Login", command=login_valido_tela_selecionar_usuario).pack(pady=20)
+
+    janela_principal.mainloop()
+
+# Chama a função principal para criar a tela principal
+if __name__ == "__main__":
+    tela_principal()
     
     menu_inicial = Ctk.CTkToplevel()
     menu_inicial.title("SwanShine")
@@ -339,8 +471,7 @@ def tela_configuracoes():
 
     print("Abrindo tela de configurações...")
 
-    def salvar_configuracoes():
-        toggle_theme()
+  
 
     def buscar_atualizacoes():
         check_for_updates()
@@ -352,7 +483,7 @@ def tela_configuracoes():
     Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
 
     global theme_button
-    theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Claro", command=salvar_configuracoes)
+    theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Claro")
     theme_button.pack(pady=10)
 
     update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações", command=buscar_atualizacoes)
@@ -439,7 +570,7 @@ def login_valido_tela_selecionar_usuario():
             janela_principal.withdraw()
         pass
 
-#Configuração da tela
+# Configuração da tela
 janela_principal = Ctk.CTk()
 janela_principal._set_appearance_mode("System")
 janela_principal.geometry("500x500")
@@ -447,31 +578,30 @@ janela_principal.title("Login")
 janela_principal.maxsize(width=500, height=500)
 janela_principal.minsize(width=500, height=500)
 
-# Tela
-rightframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
+# Frame direito
+rightframe = Ctk.CTkFrame(janela_principal, width=250, height=500, corner_radius=0, bg_color="orange")
 rightframe.pack(side="right", fill="both")
 
-label_usuario = Ctk.CTkLabel(rightframe, width=250, height=50, text="Usuario", font=("Inter-Regular", 16,"italic"))
+label_usuario = Ctk.CTkLabel(rightframe, text="Usuário", font=("Inter-Regular", 16, "italic"))
 label_usuario.pack(pady=10)
 
-input_usuario = Ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_usuario = Ctk.CTkEntry(rightframe, fg_color="white", font=("Inter-Regular", 16, "italic"))
 input_usuario.pack(pady=10)
 
-label_senha = Ctk.CTkLabel(rightframe, width=250, height=50, text="Senha", font=("Inter-Regular", 16, "italic"))
+label_senha = Ctk.CTkLabel(rightframe, text="Senha", font=("Inter-Regular", 16, "italic"))
 label_senha.pack(pady=10)
 
-input_senha = Ctk.CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_senha = Ctk.CTkEntry(rightframe, fg_color="white", font=("Inter-Regular", 16, "italic"), show="*")
 input_senha.pack(pady=10)
 
 button_entrar = Ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
-button_entrar.place(x=50, y=330)
+button_entrar.pack(pady=10)  # Usando pack para manter consistência
 
-leftframe = Frame(janela_principal, width=250, height=500, relief="raise", bg="orange")
+# Frame esquerdo
+leftframe = Ctk.CTkFrame(janela_principal, width=250, height=500, corner_radius=0, bg_color="orange")
 leftframe.pack(side="left", fill="both")
 
-label_imagem = CTkLabel(leftframe, width=250, height=250, text="")
-label_imagem.place(x=-100, y=-10)
+label_imagem = Ctk.CTkLabel(leftframe, text="")
+label_imagem.pack(pady=10)  # Usando pack para manter consistência
 
 janela_principal.mainloop()
-# Iniciar o loop principal da janela
-
