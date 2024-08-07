@@ -6,6 +6,14 @@ from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from PIL import ImageTk, Image
 import pyglet
 
+
+#funções globais 
+
+def initialize_window():
+    # Limpa a janela antes de reinicializá-la
+    for widget in menu_inicial.winfo_children():
+        widget.destroy()
+        
 # Dicionário de cores para os temas
 colors_light = {
     "background": "#FFFFFF",
@@ -89,20 +97,22 @@ def open_profile():
 
 def alternar_tema():
     global tema, current_theme
-    # Alterna entre os temas "dark" e "light"
-    if tema == "dark":
-        tema = "light"
-        current_theme = colors_light
-    else:
-        tema = "dark"
-        current_theme = colors_dark
-    # Define o modo de aparência globalmente
-    Ctk.set_appearance_mode(tema)
-    # Atualiza o estilo de todos os widgets criados após esta chamada
-    Ctk.update_appearance_mode()
-    # Atualiza a UI com as novas cores
-    update_ui_for_navbar_open() if btnState else update_ui_for_navbar_closed()
 
+    janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
+    janela_configuracoes.title("Configurações")
+    janela_configuracoes.geometry("400x300")
+
+    Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
+
+    global theme_button
+    theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Claro")
+    theme_button.pack(pady=10)
+
+    update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações")
+    update_button.pack(pady=10)
+
+    close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar", command=janela_configuracoes.destroy)
+    close_button.pack(pady=10)
 def open_configuracoes():
     global janela_configuracoes
     # Verifica se a janela de configurações já está aberta ou foi destruída
@@ -136,7 +146,10 @@ def open_administracao():
 def sair_menu():
     resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
     if resposta:
-        menu_inicial.destroy()
+        relogin()
+
+
+
 # Função para buscar atualizações
 def check_for_updates():
     messagebox.showinfo("Atualizações", "Você está usando a versão mais recente.")
@@ -196,31 +209,30 @@ def validar_login_print():
         print("Login", "Login falhou. Verifique suas credenciais.")
         return False
 
-def login_valido_tela_selecionar_usuario():
-    try:
-        if validar_login():
-            tela_administrativa()
-    except validar_login: 
-        tela_login.withdraw()  
-        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-    finally:
-        if validar_login_print():
-            tela_login.withdraw()
-        pass
+
 
 # Função para validar o login e abrir a tela administrativa
-
+def relogin():
+    if sair_menu():
+        menu_inicial.destroy()
+        tela_login.deiconify()
+    
 def login_valido_tela_selecionar_usuario():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
     try:
-        if validar_login():
-            menu_inicial()
-    except validar_login: 
-        tela_login.withdraw()  
-        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+        if login(usuario, senha):  # Verifica se o login é válido
+            tela_login.withdraw()  # Fecha a tela de login
+            menu_inicial()  # Abre o menu inicial
+        else:
+            messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+            initialize_window()
+    except Exception as e:
+        messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
     finally:
-        if validar_login_print():
-            tela_login.withdraw()
+        # Qualquer limpeza ou operação adicional necessária
         pass
+
 
 # Função principal para criar o menu inicial
 def menu_inicial():
@@ -572,26 +584,6 @@ def tela_configuracoes():
 
     print("Abrindo tela de configurações...")
 
-  
-
-    def buscar_atualizacoes():
-        check_for_updates()
-
-    janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
-    janela_configuracoes.title("Configurações")
-    janela_configuracoes.geometry("400x300")
-
-    Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
-
-    global theme_button
-    theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Claro")
-    theme_button.pack(pady=10)
-
-    update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações", command=buscar_atualizacoes)
-    update_button.pack(pady=10)
-
-    close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar", command=janela_configuracoes.destroy)
-    close_button.pack(pady=10)
 
 # Adicionar funcionalidade ao botão "Configurações" no Navbar
 for button in navmenu_inicial.winfo_children():
