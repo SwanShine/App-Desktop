@@ -156,7 +156,7 @@ def login_valido_tela_selecionar_usuario():
     usuario = input_usuario.get()
     senha = input_senha.get()
     if login(usuario, senha):
-        janela_principal.withdraw()
+        tela_login.withdraw()
         menu_inicial()
     else:
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
@@ -167,7 +167,7 @@ def menu_inicial():
     
     menu_inicial = Ctk.CTkToplevel()
     menu_inicial.title("SwanShine")
-    menu_inicial.geometry("400x600+850+50")
+    menu_inicial.geometry("500x500")
     
     # Carregamento das imagens dos ícones
     try:
@@ -226,23 +226,40 @@ def tela_administrativa():
 
 # Função para a tela principal
 def tela_principal():
-    global janela_principal, input_usuario, input_senha
+    global tela_login, input_usuario, input_senha
     
-    janela_principal = Ctk.CTk()  # Cria a janela principal
-    janela_principal.title("Login")
-    janela_principal.geometry("300x200")
+tela_login = Ctk.CTk()
+tela_login._set_appearance_mode("System")
+tela_login.geometry("500x500")
+tela_login.title("Login")
+tela_login.maxsize(width=500, height=500)
+tela_login.minsize(width=500, height=500)
 
-    Ctk.CTkLabel(janela_principal, text="Usuário").pack(pady=10)
-    input_usuario = Ctk.CTkEntry(janela_principal)
-    input_usuario.pack(pady=5)
+rightframe = Frame(tela_login, width=250, height=500, relief="raise", bg="orange")
+rightframe.pack(side="right", fill="both")
 
-    Ctk.CTkLabel(janela_principal, text="Senha").pack(pady=10)
-    input_senha = Ctk.CTkEntry(janela_principal, show="*")
-    input_senha.pack(pady=5)
+label_usuario = CTkLabel(rightframe, width=250, height=50, text="Usuario", font=("Inter-Regular", 16,"italic"))
+label_usuario.pack(pady=10)
 
-    Ctk.CTkButton(janela_principal, text="Login", command=login_valido_tela_selecionar_usuario).pack(pady=20)
+input_usuario = CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_usuario.pack(pady=10)
 
-    janela_principal.mainloop()
+label_senha = CTkLabel(rightframe, width=250, height=50, text="Senha", font=("Inter-Regular", 16, "italic"))
+label_senha.pack(pady=10)
+
+input_senha = CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
+input_senha.pack(pady=10)
+
+button_entrar = CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
+button_entrar.place(x=50, y=330)
+
+leftframe = Frame(tela_login, width=250, height=500, relief="raise", bg="orange")
+leftframe.pack(side="left", fill="both")
+
+label_imagem = CTkLabel(leftframe, width=250, height=250,text="")
+label_imagem.place(x=-100, y=-10)
+
+tela_login.mainloop()
 
 # Chama a função principal para criar a tela principal
 if __name__ == "__main__":
@@ -586,45 +603,10 @@ def login_valido_tela_selecionar_usuario():
         if validar_login():
             tela_administrativa()
     except validar_login: 
-        janela_principal.withdraw()  
+        tela_login.withdraw()  
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
     finally:
         if validar_login_print():
-            janela_principal.withdraw()
+            tela_login.withdraw()
         pass
 
-# Configuração da tela
-janela_principal = Ctk.CTk()
-janela_principal._set_appearance_mode("System")
-janela_principal.geometry("500x500")
-janela_principal.title("Login")
-janela_principal.maxsize(width=500, height=500)
-janela_principal.minsize(width=500, height=500)
-
-# Frame direito
-rightframe = Ctk.CTkFrame(janela_principal, width=250, height=500, corner_radius=0, bg_color="orange")
-rightframe.pack(side="right", fill="both")
-
-label_usuario = Ctk.CTkLabel(rightframe, text="Usuário", font=("Inter-Regular", 16, "italic"))
-label_usuario.pack(pady=10)
-
-input_usuario = Ctk.CTkEntry(rightframe, fg_color="white", font=("Inter-Regular", 16, "italic"))
-input_usuario.pack(pady=10)
-
-label_senha = Ctk.CTkLabel(rightframe, text="Senha", font=("Inter-Regular", 16, "italic"))
-label_senha.pack(pady=10)
-
-input_senha = Ctk.CTkEntry(rightframe, fg_color="white", font=("Inter-Regular", 16, "italic"), show="*")
-input_senha.pack(pady=10)
-
-button_entrar = Ctk.CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
-button_entrar.pack(pady=10)  # Usando pack para manter consistência
-
-# Frame esquerdo
-leftframe = Ctk.CTkFrame(janela_principal, width=250, height=500, corner_radius=0, bg_color="orange")
-leftframe.pack(side="left", fill="both")
-
-label_imagem = Ctk.CTkLabel(leftframe, text="")
-label_imagem.pack(pady=10)  # Usando pack para manter consistência
-
-janela_principal.mainloop()
