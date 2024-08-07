@@ -86,12 +86,34 @@ def open_profile():
         janela_profile = Ctk.CTkToplevel(menu_inicial)
         janela_profile.title("Perfil")
 
+
+def alternar_tema():
+    global tema, current_theme
+    # Alterna entre os temas "dark" e "light"
+    if tema == "dark":
+        tema = "light"
+        current_theme = colors_light
+    else:
+        tema = "dark"
+        current_theme = colors_dark
+    # Define o modo de aparência globalmente
+    Ctk.set_appearance_mode(tema)
+    # Atualiza o estilo de todos os widgets criados após esta chamada
+    Ctk.update_appearance_mode()
+    # Atualiza a UI com as novas cores
+    update_ui_for_navbar_open() if btnState else update_ui_for_navbar_closed()
+
 def open_configuracoes():
     global janela_configuracoes
+    # Verifica se a janela de configurações já está aberta ou foi destruída
     if janela_configuracoes is None or not janela_configuracoes.winfo_exists():
         janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
         janela_configuracoes.title("Configurações")
+        janela_configuracoes.geometry("400x200")
 
+        # Botão para alternar o tema
+        botao_alternar_tema = Ctk.CTkButton(janela_configuracoes, text="Alternar Tema", command=alternar_tema)
+        botao_alternar_tema.pack(pady=20)
 def open_contato():
     global janela_contato
     if janela_contato is None or not janela_contato.winfo_exists():
@@ -151,15 +173,54 @@ def login(usuario, senha):
             conn.close()
     return False
 
-# Função para validar o login e abrir a tela administrativa
-def login_valido_tela_selecionar_usuario():
+def validar_login():
     usuario = input_usuario.get()
     senha = input_senha.get()
+
     if login(usuario, senha):
-        tela_login.withdraw()
-        menu_inicial()
+        messagebox.showinfo("Login", "Login bem-sucedido!")
+        return True
     else:
         messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+        return False
+    
+
+def validar_login_print():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    if login(usuario, senha):
+        print("Login", "Login bem-sucedido!")
+        return True
+    else:
+        print("Login", "Login falhou. Verifique suas credenciais.")
+        return False
+
+def login_valido_tela_selecionar_usuario():
+    try:
+        if validar_login():
+            tela_administrativa()
+    except validar_login: 
+        tela_login.withdraw()  
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+    finally:
+        if validar_login_print():
+            tela_login.withdraw()
+        pass
+
+# Função para validar o login e abrir a tela administrativa
+
+def login_valido_tela_selecionar_usuario():
+    try:
+        if validar_login():
+            menu_inicial()
+    except validar_login: 
+        tela_login.withdraw()  
+        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+    finally:
+        if validar_login_print():
+            tela_login.withdraw()
+        pass
 
 # Função principal para criar o menu inicial
 def menu_inicial():
@@ -225,7 +286,7 @@ def tela_administrativa():
     pass
 
 # Função para a tela principal
-def tela_principal():
+def tela_login():
     global tela_login, input_usuario, input_senha
     
 tela_login = Ctk.CTk()
@@ -263,7 +324,7 @@ tela_login.mainloop()
 
 # Chama a função principal para criar a tela principal
 if __name__ == "__main__":
-    tela_principal()
+    tela_login()
     
     menu_inicial = Ctk.CTkToplevel()
     menu_inicial.title("SwanShine")
@@ -576,37 +637,5 @@ def login(usuario, senha):
             conn.close()
 
 # Função para validar o login
-def validar_login():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
 
-    if login(usuario, senha):
-        messagebox.showinfo("Login", "Login bem-sucedido!")
-        return True
-    else:
-        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-        return False
-    
-def validar_login_print():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
-
-    if login(usuario, senha):
-        print("Login", "Login bem-sucedido!")
-        return True
-    else:
-        print("Login", "Login falhou. Verifique suas credenciais.")
-        return False
-
-def login_valido_tela_selecionar_usuario():
-    try:
-        if validar_login():
-            tela_administrativa()
-    except validar_login: 
-        tela_login.withdraw()  
-        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-    finally:
-        if validar_login_print():
-            tela_login.withdraw()
-        pass
 
