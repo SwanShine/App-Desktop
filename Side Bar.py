@@ -75,15 +75,12 @@ def relogin():
         menu_inicial.destroy()
         tela_login.deiconify()
 
-
-
 #funções de reinicialização das telas
 def initialize_window():
     # Limpa a janela antes de reinicializá-la
     for widget in menu_inicial.winfo_children():
         widget.destroy()
         
-
 #Função para os botoes navbar     
 def check_for_updates():
     # Função para verificar atualizações
@@ -105,17 +102,21 @@ def switch_theme():
 
 # Definindo Cores e temas
 colors_light = {
-    "background": "#FFFFFF",
-    "foreground": "#000000",
-    "accent": "#FF8700",
-    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema claro
+    "background": "#FFFFFF",       # Branco
+    "foreground": "#000000",       # Preto
+    "accent": "#FF8700",           # Laranja Principal
+    "button_color": "#FFB347",      # Laranja Claro para Botões
+    "highlight": "#FF8C00",         # Laranja Escuro para Destaques
+    "border_color": "#FFA500"       # Laranja Médio para Bordas
 }
 
 colors_dark = {
-    "background": "#2E2E2E",
-    "foreground": "#FFFFFF",
-    "accent": "#FF8700",
-    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema escuro
+    "background": "#2E2E2E",        # Cinza Escuro
+    "foreground": "#FFFFFF",        # Branco
+    "accent": "#FF8700",            # Laranja Principal
+    "button_color": "#FFB347",       # Laranja Claro para Botões
+    "highlight": "#FF8C00",          # Laranja Escuro para Destaques
+    "border_color": "#FFA500"        # Laranja Médio para Bordas
 }
 
 current_theme = colors_light  # Tema inicial
@@ -161,7 +162,7 @@ def open_animation(x):
         update_ui_for_navbar_open()
     else:
         navmenu_inicial.place(x=x, y=0)
-        menu_inicial.after(10, open_animation, x + 10)
+        menu_inicial.after(5, open_animation, x + 5)  # Ajuste o intervalo e o deslocamento
 
 # Função para animar o fechamento da Navbar
 def close_animation(x):
@@ -170,7 +171,7 @@ def close_animation(x):
         update_ui_for_navbar_closed()
     else:
         navmenu_inicial.place(x=x, y=0)
-        menu_inicial.after(10, close_animation, x - 10)
+        menu_inicial.after(5, close_animation, x - 5)  # Ajuste o intervalo e o deslocamento
 
 # Variáveis globais para rastrear janelas abertas
 janela_profile = None
@@ -406,18 +407,36 @@ def menu_inicial():
     navmenu_inicial.place(x=-300, y=0)
 
     # Rótulo de cabeçalho na Navbar
-    Ctk.CTkLabel(navmenu_inicial, text="Menu", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, width=300).place(x=0, y=0)
+    Ctk.CTkLabel(
+        navmenu_inicial,
+        text="Menu",
+        font=("Bahnschrift", 15),
+        fg_color=current_theme["accent"],  # Cor de fundo do rótulo
+        text_color=current_theme["background"],  # Cor do texto
+        height=60,
+        width=300
+    ).place(x=0, y=0)
 
     # Coordenada y dos widgets da Navbar
     y = 80
 
     # Opções no Navbar
-    options = ["Profile", "Configurações", "Contato", "Sobre", "Administração","Sair"]
-    commands = [open_profile, open_configuracoes, open_contato, open_sobre, open_administracao,sair_menu]
+    options = ["Profile", "Configurações", "Contato", "Sobre", "Administração", "Sair"]
+    commands = [open_profile, open_configuracoes, open_contato, open_sobre, open_administracao, sair_menu]
 
     # Botões de opções no Navbar
     for option, command in zip(options, commands):
-        button = Ctk.CTkButton(navmenu_inicial, text=option, font=("Bahnschrift Light", 15), fg_color=current_theme["button_color"], hover_color=current_theme["accent"], text_color=current_theme["foreground"], width=250, height=40, command=command)
+        button = Ctk.CTkButton(
+            navmenu_inicial,
+            text=option,
+            font=("Bahnschrift Light", 15),
+            fg_color=current_theme["button_color"],  # Cor de fundo do botão
+            hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
+            text_color=current_theme["foreground"],  # Cor do texto do botão
+            width=250,
+            height=40,
+            command=command
+        )
         button.place(x=25, y=y)
         
         # Adicionar eventos de hover
@@ -427,19 +446,49 @@ def menu_inicial():
         y += 50
 
     # Botão de fechar Navbar
-    closeBtn = Ctk.CTkButton(navmenu_inicial, text="", image=closeIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40)
+    closeBtn = Ctk.CTkButton(
+        navmenu_inicial,
+        text="",
+        image=closeIcon,
+        fg_color=current_theme["button_color"],  # Cor de fundo do botão
+        hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
+        command=switch,
+        width=40,
+        height=40
+    )
     closeBtn.place(x=250, y=10)
 
     # Barra de navegação superior
-    topFrame = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["accent"], height=60)
+    topFrame = Ctk.CTkFrame(
+        menu_inicial,
+        fg_color=current_theme["accent"],  # Cor de fundo da barra de navegação superior
+        height=60
+    )
     topFrame.pack(side="top", fill="x")
 
     # Rótulo de cabeçalho
-    homeLabel = Ctk.CTkLabel(topFrame, text="SwanShine", font=("Bahnschrift", 15), fg_color=current_theme["accent"], text_color=current_theme["background"], height=60, padx=20)
+    homeLabel = Ctk.CTkLabel(
+        topFrame,
+        text="SwanShine",
+        font=("Bahnschrift", 15),
+        fg_color=current_theme["accent"],  # Cor de fundo do rótulo
+        text_color=current_theme["background"],  # Cor do texto
+        height=60,
+        padx=20
+    )
     homeLabel.pack(side="right", padx=10)
 
     # Botão de Navbar
-    navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
+    navbarBtn = Ctk.CTkButton(
+        topFrame,
+        image=navIcon,
+        fg_color=current_theme["button_color"],  # Cor de fundo do botão
+        hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
+        command=switch,
+        width=40,
+        height=40,
+        text=""
+    )
     navbarBtn.place(x=10, y=10)
 
 # Tela de Login
