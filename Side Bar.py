@@ -31,6 +31,22 @@ colors_dark = {
 
 current_theme = colors_light  # Tema inicial
 
+def switch_theme():
+    global current_theme
+    if current_theme == "Claro":
+        Ctk.set_appearance_mode("dark")
+        theme_button.configure(text="Tema Claro")
+        current_theme = "Escuro"
+    else:
+        Ctk.set_appearance_mode("light")
+        theme_button.configure(text="Tema Escuro")
+        current_theme = "Claro"
+        
+def check_for_updates():
+    # Função para verificar atualizações
+    # Este é um exemplo fictício; você deve substituir isso pelo código real
+    print("Verificando atualizações...")
+
 # Estado do botão de alternância
 btnState = False
 
@@ -41,7 +57,7 @@ def on_enter(button):
 def on_leave(button):
     button.configure(fg_color=current_theme["button_color"])
 
-# Função para alternar o estado do Navbar
+# Função para alternar o estado da Navbar
 def switch():
     global btnState
     if btnState:
@@ -51,19 +67,21 @@ def switch():
 
 # Função para animar o fechamento da Navbar
 def close_animation(x):
-    if x >= -300:
+    if x <= -300:
+        navmenu_inicial.place(x=x, y=0)
+        update_ui_for_navbar_closed()
+    else:
         navmenu_inicial.place(x=x, y=0)
         menu_inicial.after(10, close_animation, x - 10)
-    else:
-        update_ui_for_navbar_closed()
 
 # Função para animar a abertura da Navbar
 def open_animation(x):
-    if x <= 0:
+    if x >= 0:
+        navmenu_inicial.place(x=x, y=0)
+        update_ui_for_navbar_open()
+    else:
         navmenu_inicial.place(x=x, y=0)
         menu_inicial.after(10, open_animation, x + 10)
-    else:
-        update_ui_for_navbar_open()
 
 # Atualizar a interface quando a Navbar estiver fechada
 def update_ui_for_navbar_closed():
@@ -81,6 +99,7 @@ def update_ui_for_navbar_open():
     global btnState
     btnState = True
 
+
 # Variáveis globais para rastrear janelas abertas
 janela_profile = None
 janela_configuracoes = None
@@ -94,36 +113,26 @@ def open_profile():
         janela_profile = Ctk.CTkToplevel(menu_inicial)
         janela_profile.title("Perfil")
 
-
-def alternar_tema():
-    global tema, current_theme
-
-    janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
-    janela_configuracoes.title("Configurações")
-    janela_configuracoes.geometry("400x300")
-
-    Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
-
-    global theme_button
-    theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Claro")
-    theme_button.pack(pady=10)
-
-    update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações")
-    update_button.pack(pady=10)
-
-    close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar", command=janela_configuracoes.destroy)
-    close_button.pack(pady=10)
 def open_configuracoes():
+    global theme_button
     global janela_configuracoes
-    # Verifica se a janela de configurações já está aberta ou foi destruída
+    
     if janela_configuracoes is None or not janela_configuracoes.winfo_exists():
         janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
         janela_configuracoes.title("Configurações")
-        janela_configuracoes.geometry("400x200")
+        janela_configuracoes.geometry("400x300")
 
-        # Botão para alternar o tema
-        botao_alternar_tema = Ctk.CTkButton(janela_configuracoes, text="Alternar Tema", command=alternar_tema)
-        botao_alternar_tema.pack(pady=20)
+        Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
+
+        theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Escuro", command=switch_theme)
+        theme_button.pack(pady=10)
+
+        update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações", command=check_for_updates)
+        update_button.pack(pady=10)
+
+        close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar", command=janela_configuracoes.destroy)
+        close_button.pack(pady=10)
+    
 def open_contato():
     global janela_contato
     if janela_contato is None or not janela_contato.winfo_exists():
@@ -240,7 +249,7 @@ def menu_inicial():
     
     menu_inicial = Ctk.CTkToplevel()
     menu_inicial.title("SwanShine")
-    menu_inicial.geometry("500x500")
+    menu_inicial.geometry("1280x720")
     
     # Carregamento das imagens dos ícones
     try:
