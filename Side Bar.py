@@ -69,12 +69,6 @@ def login_valido_tela_selecionar_usuario():
         # Qualquer limpeza ou operação adicional necessária
         pass
 
-# Função para sair do menu e abrir a tela de login
-def relogin():
-    if sair_menu():
-        menu_inicial.destroy()
-        tela_login.deiconify()
-
 #funções de reinicialização das telas
 def initialize_window():
     # Limpa a janela antes de reinicializá-la
@@ -227,9 +221,10 @@ def open_sobre():
 def sair_menu():
     resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
     if resposta:
-        relogin()
+        menu_inicial.quit()  # Fecha a aplicação
+    
 
-#Tela de Administração
+# Tela de Administração
 def open_administracao():
     def conectar_bd():
         try:
@@ -266,10 +261,17 @@ def open_administracao():
         telefone = entry_telefone.get()
         conn, cursor = conectar_bd()
         if conn and cursor:
-            cursor.execute("INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)", (cpf, email, endereco, nome, telefone))
-            conn.commit()
-            conn.close()
-            exibir_registros()
+            try:
+                cursor.execute(
+                    "INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)",
+                    (cpf, email, endereco, nome, telefone)
+                )
+                conn.commit()
+                exibir_registros()
+            except mysql.connector.Error as erro:
+                print("Erro ao adicionar registro:", erro)
+            finally:
+                conn.close()
 
     def deletar_registro():
         selected_item = tree.selection()
@@ -351,17 +353,19 @@ def open_administracao():
         entries['Novo Valor'], entries['Filtrar por ID Cliente']
     )
 
-    btn_adicionar = ttk.Button(frame_input, text="Adicionar", command=adicionar_registro)
-    btn_adicionar.grid(row=len(labels), column=1, padx=5, pady=5, sticky='e')
 
     frame_botoes = ttk.Frame(janela_admin)
     frame_botoes.pack(pady=10)
+    
 
-    btn_editar = ttk.Button(frame_botoes, text="Editar Campo Selecionado", command=editar_registro)
-    btn_editar.grid(row=0, column=0, padx=10)
+    btn_adicionar = CTkButton(frame_botoes, text="Adicionar", command=adicionar_registro)
+    btn_adicionar.grid(row=0, column=0, padx=10)
 
-    btn_filtrar = ttk.Button(frame_botoes, text="Filtrar por ID Cliente", command=filtrar_por_id_cliente)
-    btn_filtrar.grid(row=0, column=1, padx=10)
+    btn_editar = CTkButton(frame_botoes, text="Editar Campo Selecionado", command=editar_registro)
+    btn_editar.grid(row=0, column=1, padx=10)
+
+    btn_filtrar = CTkButton(frame_botoes, text="Filtrar por ID Cliente", command=filtrar_por_id_cliente)
+    btn_filtrar.grid(row=0, column=2, padx=10)
 
     tree = ttk.Treeview(janela_admin, columns=('ID', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone'), show='headings')
     tree.heading('ID', text='ID')
@@ -375,17 +379,16 @@ def open_administracao():
     frame_botoes_inferiores = ttk.Frame(janela_admin)
     frame_botoes_inferiores.pack(pady=10)
 
-    btn_atualizar = ttk.Button(frame_botoes_inferiores, text="Atualizar Lista", command=exibir_registros)
+    btn_atualizar = CTkButton(frame_botoes_inferiores, text="Atualizar Lista", command=exibir_registros)
     btn_atualizar.grid(row=0, column=0, padx=20)
 
-    btn_deletar = ttk.Button(frame_botoes_inferiores, text="Deletar Selecionado", command=deletar_registro)
+    btn_deletar = CTkButton(frame_botoes_inferiores, text="Deletar Selecionado", command=deletar_registro)
     btn_deletar.grid(row=0, column=1, padx=20)
     
-    btn_voltar = ttk.Button(frame_botoes_inferiores, text="Voltar", command=fechar_janela_admin)
+    btn_voltar = CTkButton(frame_botoes_inferiores, text="Voltar", command=fechar_janela_admin)
     btn_voltar.grid(row=0, column=2, padx=20)
 
     exibir_registros()
-
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
