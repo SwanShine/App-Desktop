@@ -75,22 +75,7 @@ def relogin():
         menu_inicial.destroy()
         tela_login.deiconify()
 
-#Definindo Cores e temas
-colors_light = {
-    "background": "#FFFFFF",
-    "foreground": "#000000",
-    "accent": "#FF8700",
-    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema claro
-}
 
-colors_dark = {
-    "background": "#2E2E2E",
-    "foreground": "#FFFFFF",
-    "accent": "#FF8700",
-    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema escuro
-}
-
-current_theme = colors_light  # Tema inicial
 
 #funções de reinicialização das telas
 def initialize_window():
@@ -107,26 +92,53 @@ def check_for_updates():
     
 def switch_theme():
     global current_theme
-    if current_theme == "Claro":
+    if current_theme == colors_light:
         Ctk.set_appearance_mode("dark")
         theme_button.configure(text="Tema Claro")
-        current_theme = "Escuro"
+        current_theme = colors_dark
     else:
         Ctk.set_appearance_mode("light")
         theme_button.configure(text="Tema Escuro")
-        current_theme = "Claro"
+        current_theme = colors_light
     
+    update_ui()  # Atualiza a interface com o novo tema
 
+# Definindo Cores e temas
+colors_light = {
+    "background": "#FFFFFF",
+    "foreground": "#000000",
+    "accent": "#FF8700",
+    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema claro
+}
+
+colors_dark = {
+    "background": "#2E2E2E",
+    "foreground": "#FFFFFF",
+    "accent": "#FF8700",
+    "button_color": "#D1D1D1"  # Cor fixa dos botões no tema escuro
+}
+
+current_theme = colors_light  # Tema inicial
 btnState = False
+
+# Atualizar a interface
+def update_ui():
+    homeLabel.configure(fg_color=current_theme["background"], text_color=current_theme["foreground"])
+    topFrame.configure(fg_color=current_theme["background"])
+    menu_inicial.configure(fg_color=current_theme["background"])
 
 # Atualizar a interface quando a Navbar estiver fechada
 def update_ui_for_navbar_closed():
-    homeLabel.configure(fg_color=current_theme["accent"], text_color=current_theme["background"])
-    topFrame.configure(fg_color=current_theme["accent"])
-    menu_inicial.configure(fg_color=current_theme["background"])
+    update_ui()
     global btnState
     btnState = False
-    
+
+# Atualizar a interface quando a Navbar estiver aberta
+def update_ui_for_navbar_open():
+    update_ui()
+    global btnState
+    btnState = True
+
 # Função para alterar a cor de fundo dos botões quando o mouse passa sobre eles
 def on_enter(button):
     button.configure(fg_color=current_theme["accent"])
@@ -142,15 +154,6 @@ def switch():
     else:
         open_animation(0)
 
-# Função para animar o fechamento da Navbar
-def close_animation(x):
-    if x <= -300:
-        navmenu_inicial.place(x=x, y=0)
-        update_ui_for_navbar_closed()
-    else:
-        navmenu_inicial.place(x=x, y=0)
-        menu_inicial.after(10, close_animation, x - 10)
-
 # Função para animar a abertura da Navbar
 def open_animation(x):
     if x >= 0:
@@ -160,15 +163,14 @@ def open_animation(x):
         navmenu_inicial.place(x=x, y=0)
         menu_inicial.after(10, open_animation, x + 10)
 
-
-
-# Atualizar a interface quando a Navbar estiver aberta
-def update_ui_for_navbar_open():
-    homeLabel.configure(fg_color=current_theme["background"], text_color=current_theme["foreground"])
-    topFrame.configure(fg_color=current_theme["background"])
-    menu_inicial.configure(fg_color=current_theme["background"])
-    global btnState
-    btnState = True
+# Função para animar o fechamento da Navbar
+def close_animation(x):
+    if x <= -300:
+        navmenu_inicial.place(x=x, y=0)
+        update_ui_for_navbar_closed()
+    else:
+        navmenu_inicial.place(x=x, y=0)
+        menu_inicial.after(10, close_animation, x - 10)
 
 # Variáveis globais para rastrear janelas abertas
 janela_profile = None
