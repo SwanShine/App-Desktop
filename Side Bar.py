@@ -6,15 +6,76 @@ from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from PIL import ImageTk, Image
 import pyglet
 
+#Funções para fazer Login
+def login(usuario, senha):
+    try:
+        # Conexão com o banco de dados
+        conn = mysql.connector.connect(
+            host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
+            user="admin",
+            password="gLAHqWkvUoaxwBnm9wKD",
+            database="swanshine"
+        )
 
-#funções globais 
+        cursor = conn.cursor()
+        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
+        dados = (usuario, senha)
+        cursor.execute(consulta, dados)
 
-def initialize_window():
-    # Limpa a janela antes de reinicializá-la
-    for widget in menu_inicial.winfo_children():
-        widget.destroy()
-        
-# Dicionário de cores para os temas
+        return cursor.fetchone() is not None
+
+    except mysql.connector.Error as erro:
+        print("Erro ao conectar ao MySQL:", erro)
+        return False
+
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+# Função para validar login e mostrar mensagem
+def validar_login(modo='messagebox'):
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    sucesso = login(usuario, senha)
+    if sucesso:
+        if modo == 'messagebox':
+            messagebox.showinfo("Login", "Login bem-sucedido!")
+        elif modo == 'print':
+            print("Login bem-sucedido!")
+    else:
+        if modo == 'messagebox':
+            messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+        elif modo == 'print':
+            print("Login falhou. Verifique suas credenciais.")
+    return sucesso
+
+# Função para validar o login e abrir a tela administrativa
+def login_valido_tela_selecionar_usuario():
+    usuario = input_usuario.get()
+    senha = input_senha.get()
+
+    try:
+        if login(usuario, senha):  # Verifica se o login é válido
+            tela_login.withdraw()  # Fecha a tela de login
+            menu_inicial()  # Abre o menu inicial
+        else:
+            messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
+            initialize_window()
+    except Exception as e:
+        messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
+    finally:
+        # Qualquer limpeza ou operação adicional necessária
+        pass
+
+# Função para sair do menu e abrir a tela de login
+def relogin():
+    if sair_menu():
+        menu_inicial.destroy()
+        tela_login.deiconify()
+
+#Definindo Cores e temas
 colors_light = {
     "background": "#FFFFFF",
     "foreground": "#000000",
@@ -31,6 +92,19 @@ colors_dark = {
 
 current_theme = colors_light  # Tema inicial
 
+#funções de reinicialização das telas
+def initialize_window():
+    # Limpa a janela antes de reinicializá-la
+    for widget in menu_inicial.winfo_children():
+        widget.destroy()
+        
+
+#Função para os botoes navbar     
+def check_for_updates():
+    # Função para verificar atualizações
+    # Este é um exemplo fictício; você deve substituir isso pelo código real
+    print("Verificando atualizações...")
+    
 def switch_theme():
     global current_theme
     if current_theme == "Claro":
@@ -41,15 +115,18 @@ def switch_theme():
         Ctk.set_appearance_mode("light")
         theme_button.configure(text="Tema Escuro")
         current_theme = "Claro"
-        
-def check_for_updates():
-    # Função para verificar atualizações
-    # Este é um exemplo fictício; você deve substituir isso pelo código real
-    print("Verificando atualizações...")
+    
 
-# Estado do botão de alternância
 btnState = False
 
+# Atualizar a interface quando a Navbar estiver fechada
+def update_ui_for_navbar_closed():
+    homeLabel.configure(fg_color=current_theme["accent"], text_color=current_theme["background"])
+    topFrame.configure(fg_color=current_theme["accent"])
+    menu_inicial.configure(fg_color=current_theme["background"])
+    global btnState
+    btnState = False
+    
 # Função para alterar a cor de fundo dos botões quando o mouse passa sobre eles
 def on_enter(button):
     button.configure(fg_color=current_theme["accent"])
@@ -83,13 +160,7 @@ def open_animation(x):
         navmenu_inicial.place(x=x, y=0)
         menu_inicial.after(10, open_animation, x + 10)
 
-# Atualizar a interface quando a Navbar estiver fechada
-def update_ui_for_navbar_closed():
-    homeLabel.configure(fg_color=current_theme["accent"], text_color=current_theme["background"])
-    topFrame.configure(fg_color=current_theme["accent"])
-    menu_inicial.configure(fg_color=current_theme["background"])
-    global btnState
-    btnState = False
+
 
 # Atualizar a interface quando a Navbar estiver aberta
 def update_ui_for_navbar_open():
@@ -98,7 +169,6 @@ def update_ui_for_navbar_open():
     menu_inicial.configure(fg_color=current_theme["background"])
     global btnState
     btnState = True
-
 
 # Variáveis globais para rastrear janelas abertas
 janela_profile = None
@@ -116,7 +186,10 @@ def open_profile():
 def open_configuracoes():
     global theme_button
     global janela_configuracoes
-    
+
+    def fechar_config():
+        janela_configuracoes.destroy()
+
     if janela_configuracoes is None or not janela_configuracoes.winfo_exists():
         janela_configuracoes = Ctk.CTkToplevel(menu_inicial)
         janela_configuracoes.title("Configurações")
@@ -130,13 +203,12 @@ def open_configuracoes():
         update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações", command=check_for_updates)
         update_button.pack(pady=10)
 
-        close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar", command=janela_configuracoes.destroy)
+        close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar",command=fechar_config)
         close_button.pack(pady=10)
 
         # Forçar atualização dos widgets
-        janela_configuracoes.update()
+        menu_inicial.update()
 
-    
 def open_contato():
     global janela_contato
     if janela_contato is None or not janela_contato.winfo_exists():
@@ -148,7 +220,13 @@ def open_sobre():
     if janela_sobre is None or not janela_sobre.winfo_exists():
         janela_sobre = Ctk.CTkToplevel(menu_inicial)
         janela_sobre.title("Sobre")
+        
+def sair_menu():
+    resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
+    if resposta:
+        relogin()
 
+#Tela de Administração
 def open_administracao():
     def conectar_bd():
         try:
@@ -305,96 +383,6 @@ def open_administracao():
 
     exibir_registros()
 
-
-def sair_menu():
-    resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
-    if resposta:
-        relogin()
-
-# Função para buscar atualizações
-def check_for_updates():
-    messagebox.showinfo("Atualizações", "Você está usando a versão mais recente.")
-
-# Função para fazer login
-def login(usuario, senha):
-    try:
-        # Conexão com o banco de dados
-        conn = mysql.connector.connect(
-            host="swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com",
-            user="admin",
-            password="gLAHqWkvUoaxwBnm9wKD",
-            database="swanshine"
-        )
-
-        cursor = conn.cursor()
-
-        consulta = "SELECT * FROM admins WHERE Usuario = %s AND Senha = %s"
-        dados = (usuario, senha)
-
-        cursor.execute(consulta, dados)
-
-        if cursor.fetchone():
-            return True
-        else:
-            return False
-
-    except mysql.connector.Error as erro:
-        print("Erro ao conectar ao MySQL:", erro)
-        return False
-
-    finally:
-        if 'conn' in locals() and conn.is_connected():
-            cursor.close()
-            conn.close()
-
-def validar_login():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
-
-    if login(usuario, senha):
-        messagebox.showinfo("Login", "Login bem-sucedido!")
-        return True
-    else:
-        messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-        return False
-    
-
-def validar_login_print():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
-
-    if login(usuario, senha):
-        print("Login", "Login bem-sucedido!")
-        return True
-    else:
-        print("Login", "Login falhou. Verifique suas credenciais.")
-        return False
-
-
-
-# Função para validar o login e abrir a tela administrativa
-def relogin():
-    if sair_menu():
-        menu_inicial.destroy()
-        tela_login.deiconify()
-    
-def login_valido_tela_selecionar_usuario():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
-    try:
-        if login(usuario, senha):  # Verifica se o login é válido
-            tela_login.withdraw()  # Fecha a tela de login
-            menu_inicial()  # Abre o menu inicial
-        else:
-            messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-            initialize_window()
-    except Exception as e:
-        messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
-    finally:
-        # Qualquer limpeza ou operação adicional necessária
-        pass
-
-
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
@@ -452,7 +440,7 @@ def menu_inicial():
     navbarBtn = Ctk.CTkButton(topFrame, image=navIcon, fg_color=current_theme["button_color"], hover_color=current_theme["accent"], command=switch, width=40, height=40, text="")
     navbarBtn.place(x=10, y=10)
 
-# Função para a tela principal
+# Tela de Login
 def tela_login():
     global tela_login, input_usuario, input_senha
     
@@ -488,5 +476,3 @@ label_imagem = CTkLabel(leftframe, width=250, height=250,text="")
 label_imagem.place(x=-100, y=-10)
 
 tela_login.mainloop()
-
-
