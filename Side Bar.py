@@ -80,6 +80,12 @@ def check_for_updates():
     # Função para verificar atualizações
     # Este é um exemplo fictício; você deve substituir isso pelo código real
     print("Verificando atualizações...")
+
+def fechar_profile():
+    global janela_profile
+    if janela_profile is not None:
+        janela_profile.destroy()
+        janela_profile = None
     
 def switch_theme():
     global current_theme
@@ -176,9 +182,22 @@ janela_administracao = None
 
 def open_profile():
     global janela_profile
+    # Verifica se a janela está definida e se ainda existe
     if janela_profile is None or not janela_profile.winfo_exists():
         janela_profile = Ctk.CTkToplevel(menu_inicial)
         janela_profile.title("Perfil")
+        janela_profile.geometry("400x300")
+
+        # Adiciona o perfil do usuário na janela
+        profile_usuario = Ctk.CTkLabel(janela_profile, text=usuario)
+        profile_usuario.pack(pady=10)
+        
+        # Adiciona um botão para fechar a janela
+        close_button = Ctk.CTkButton(janela_profile, text="Fechar", command=fechar_profile)
+        close_button.pack(pady=10)
+    else:
+        janela_profile.lift()  # Traz a janela para o topo se já existir
+        
 
 def open_configuracoes():
     global theme_button
