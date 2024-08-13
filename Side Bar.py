@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import Frame, PhotoImage, messagebox, ttk
 import mysql.connector
-from mysql.connector import Error
 import customtkinter as Ctk
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from PIL import ImageTk, Image
@@ -190,7 +189,7 @@ def open_profile():
         janela_profile.geometry("400x300")
 
         # Adiciona o perfil do usuário na janela
-        profile_usuario = Ctk.CTkLabel(janela_profile, text="usuario")
+        profile_usuario = Ctk.CTkLabel(janela_profile, text=usuario)
         profile_usuario.pack(pady=10)
         
         # Adiciona um botão para fechar a janela
@@ -244,13 +243,8 @@ def sair_menu():
         menu_inicial.quit()  # Fecha a aplicação
     
 
+# Tela de Administração
 def open_administracao():
-    global janela_admin
-    # Verifica se a janela já está aberta
-    if janela_admin is not None and janela_admin.winfo_exists():
-        messagebox.showwarning("Aviso", "A janela de administração já está aberta.")
-        return
-
     def conectar_bd():
         try:
             conn = mysql.connector.connect(
@@ -263,24 +257,20 @@ def open_administracao():
             if conn.is_connected():
                 print("Conectado ao banco de dados")
             return conn, cursor
-        except Error as e:
-            print(f"Erro ao conectar ao MySQL: {e}")
+        except mysql.connector.Error as erro:
+            print("Erro ao conectar ao MySQL:", erro)
             return None, None
 
     def exibir_registros():
         conn, cursor = conectar_bd()
         if conn and cursor:
-            try:
-                cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes")
-                rows = cursor.fetchall()
-                for row in tree.get_children():
-                    tree.delete(row)
-                for row in rows:
-                    tree.insert('', 'end', values=row)
-            except Error as e:
-                print(f"Erro ao executar consulta: {e}")
-            finally:
-                conn.close()
+            cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes")
+            rows = cursor.fetchall()
+            for row in tree.get_children():
+                tree.delete(row)
+            for row in rows:
+                tree.insert('', 'end', values=row)
+            conn.close()
 
     def adicionar_registro():
         cpf = entry_cpf.get()
@@ -288,33 +278,23 @@ def open_administracao():
         endereco = entry_endereco.get()
         nome = entry_nome.get()
         telefone = entry_telefone.get()
-
-        # Verificando se todos os campos estão preenchidos
-        if not all([cpf, email, endereco, nome, telefone]):
-            messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
-            return
-
-        if messagebox.askokcancel("Confirmação", "Você realmente deseja adicionar este registro?"):
-            conn, cursor = conectar_bd()
-            if conn and cursor:
-                try:
-                    cursor.execute(
-                        "INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)",
-                        (cpf, email, endereco, nome, telefone)
-                    )
-                    conn.commit()
-                    exibir_registros()
-                    # Limpando os campos de entrada após a inserção bem-sucedida
-                    for entry in [entry_cpf, entry_email, entry_endereco, entry_nome, entry_telefone]:
-                        entry.delete(0, tk.END)
-                except Error as e:
-                    print(f"Erro ao adicionar registro: {e}")
-                finally:
-                    conn.close()
+        conn, cursor = conectar_bd()
+        if conn and cursor:
+            try:
+                cursor.execute(
+                    "INSERT INTO clientes (CPF, Email, Endereço, Nome, Telefone) VALUES (%s, %s, %s, %s, %s)",
+                    (cpf, email, endereco, nome, telefone)
+                )
+                conn.commit()
+                exibir_registros()
+            except mysql.connector.Error as erro:
+                print("Erro ao adicionar registro:", erro)
+            finally:
+                conn.close()
 
     def deletar_registro():
         selected_item = tree.selection()
-        if selected_item and messagebox.askokcancel("Confirmação", "Você realmente deseja deletar o(s) registro(s) selecionado(s)?"):
+        if selected_item:
             conn, cursor = conectar_bd()
             if conn and cursor:
                 try:
@@ -323,8 +303,8 @@ def open_administracao():
                         cursor.execute("DELETE FROM clientes WHERE Id_clientes=%s", (id_registro,))
                         conn.commit()
                         tree.delete(item)
-                except Error as e:
-                    print(f"Erro ao deletar registro: {e}")
+                except mysql.connector.Error as erro:
+                    print("Erro ao deletar registro:", erro)
                 finally:
                     conn.close()
 
@@ -333,43 +313,36 @@ def open_administracao():
         novo_valor = entry_novo_valor.get()
         campo = combo_campos.get()
         if selected_item and novo_valor and campo:
-            if messagebox.askokcancel("Confirmação", "Você realmente deseja editar o campo selecionado?"):
-                conn, cursor = conectar_bd()
-                if conn and cursor:
-                    try:
-                        for item in selected_item:
-                            id_registro = tree.item(item, 'values')[0]
-                            cursor.execute(f"UPDATE clientes SET {campo}=%s WHERE Id_clientes=%s", (novo_valor, id_registro))
-                            conn.commit()
-                            valores_atuais = list(tree.item(item, 'values'))
-                            indice_campo = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone'].index(campo)
-                            valores_atuais[indice_campo] = novo_valor
-                            tree.item(item, values=valores_atuais)
-                    except Error as e:
-                        print(f"Erro ao editar registro: {e}")
-                    finally:
-                        conn.close()
+            conn, cursor = conectar_bd()
+            if conn and cursor:
+                try:
+                    for item in selected_item:
+                        id_registro = tree.item(item, 'values')[0]
+                        cursor.execute(f"UPDATE clientes SET {campo}=%s WHERE Id_clientes=%s", (novo_valor, id_registro))
+                        conn.commit()
+                        valores_atuais = list(tree.item(item, 'values'))
+                        indice_campo = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone'].index(campo)
+                        valores_atuais[indice_campo] = novo_valor
+                        tree.item(item, values=valores_atuais)
+                except mysql.connector.Error as erro:
+                    print("Erro ao editar registro:", erro)
+                finally:
+                    conn.close()
 
     def filtrar_por_id_cliente():
         id_cliente = entry_id_cliente.get()
         conn, cursor = conectar_bd()
         if conn and cursor:
-            try:
-                cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes WHERE Id_clientes = %s", (id_cliente,))
-                rows = cursor.fetchall()
-                for row in tree.get_children():
-                    tree.delete(row)
-                for row in rows:
-                    tree.insert('', 'end', values=row)
-            except Error as e:
-                print(f"Erro ao filtrar registros: {e}")
-            finally:
-                conn.close()
-
+            cursor.execute("SELECT Id_clientes, CPF, Email, Endereço, Nome, Telefone FROM clientes WHERE Id_clientes = %s", (id_cliente,))
+            rows = cursor.fetchall()
+            for row in tree.get_children():
+                tree.delete(row)
+            for row in rows:
+                tree.insert('', 'end', values=row)
+            conn.close()
+            
     def fechar_janela_admin():
-        global janela_admin
-        janela_admin.destroy()
-        janela_admin = None
+        janela_admin.withdraw()
         menu_inicial.deiconify()
 
     janela_admin = tk.Toplevel(menu_inicial)
@@ -387,7 +360,7 @@ def open_administracao():
     for i, label in enumerate(labels):
         ttk.Label(frame_input, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
         if label == 'Campo':
-            campos_disponiveis = ['CPF', 'Email', 'Endereço', 'Nome', 'Telefone']
+            campos_disponiveis = ['Id_clientes', 'CPF', 'Email', 'Endereço', 'Nome', 'Telefone']
             combo_campos = ttk.Combobox(frame_input, values=campos_disponiveis, width=27)
             combo_campos.grid(row=i, column=1, padx=5, pady=5)
         else:
@@ -399,8 +372,10 @@ def open_administracao():
         entries['Novo Valor'], entries['Filtrar por ID Cliente']
     )
 
+
     frame_botoes = ttk.Frame(janela_admin)
     frame_botoes.pack(pady=10)
+    
 
     btn_adicionar = CTkButton(frame_botoes, text="Adicionar", command=adicionar_registro)
     btn_adicionar.grid(row=0, column=0, padx=10)
@@ -428,13 +403,12 @@ def open_administracao():
 
     btn_deletar = CTkButton(frame_botoes_inferiores, text="Deletar Selecionado", command=deletar_registro)
     btn_deletar.grid(row=0, column=1, padx=20)
-
+    
     btn_voltar = CTkButton(frame_botoes_inferiores, text="Voltar", command=fechar_janela_admin)
     btn_voltar.grid(row=0, column=2, padx=20)
 
     exibir_registros()
-    
-    
+# Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
     
