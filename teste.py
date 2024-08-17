@@ -104,7 +104,7 @@ def open_administracao():
                             cursor.execute("DELETE FROM admins WHERE Id=%s", (id_registro,))
                         elif tabela_selecionada == "profissionais":
                             cursor.execute("DELETE FROM profissionais WHERE id=%s", (id_registro,))
-                        # Adicione lógica para outras tabelas conforme necessário
+                       
                         conn.commit()
                         tree.delete(item)
                 except Error as e:
@@ -130,7 +130,7 @@ def open_administracao():
                                 cursor.execute(f"UPDATE admins SET {campo}=%s WHERE Id=%s", (novo_valor, id_registro))
                             elif tabela_selecionada == "profissionais":
                                 cursor.execute(f"UPDATE profissionais SET {campo}=%s WHERE id=%s", (novo_valor, id_registro))
-                            # Adicione lógica para outras tabelas conforme necessário
+                           
                             conn.commit()
                             valores_atuais = list(tree.item(item, 'values'))
                             indice_campo = tree["columns"].index(campo)
@@ -149,7 +149,7 @@ def open_administracao():
                 tabela_selecionada = combo_tabelas.get()
                 if tabela_selecionada == "clientes":
                     cursor.execute("SELECT Id_clientes, Nome, Endereço, Email, cpf, Telefone, senha FROM clientes WHERE Id_clientes = %s", (id_cliente,))
-                # Adicione lógica para filtrar outras tabelas conforme necessário
+               
                 rows = cursor.fetchall()
                 for row in tree.get_children():
                     tree.delete(row)
@@ -185,7 +185,7 @@ def open_administracao():
             tabelas_disponiveis = ['admins', 'clientes', 'imagens', 'profissionais', 'serv_pro', 'serviços']
             combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
             combo_tabelas.grid(row=i, column=1, padx=5, pady=5)
-            combo_tabelas.current(0)  # Seleciona a primeira tabela por padrão
+            combo_tabelas.current(0) 
         else:
             entries[label] = ttk.Entry(frame_input, width=30)
             entries[label].grid(row=i, column=1, padx=5, pady=5)

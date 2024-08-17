@@ -189,7 +189,7 @@ def open_profile():
         janela_profile.geometry("400x300")
 
         # Adiciona o perfil do usuário na janela
-        profile_usuario = Ctk.CTkLabel(janela_profile, text=usuario)
+        profile_usuario = Ctk.CTkLabel(janela_profile, text="usuario")
         profile_usuario.pack(pady=10)
         
         # Adiciona um botão para fechar a janela
