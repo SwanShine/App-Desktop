@@ -402,6 +402,7 @@ def open_administracao():
     janela_administracao = tk.Tk()
     janela_administracao.title("Consulta e Edição de Registros")
     janela_administracao.geometry("1280x720")
+    janela_administracao.attributes('-fullscreen', True)
 
     estilo = ttk.Style()
     estilo.theme_use('clam')
@@ -444,8 +445,8 @@ def open_administracao():
     frame_botoes.pack(pady=10, padx=10)
 
     # Botões Fechar e Atualizar
-    ttk.Button(frame_botoes, text="Fechar", command=fechar_janela_admin).pack(side='right', padx=5)
-    ttk.Button(frame_botoes, text="Atualizar", command=exibir_registros).pack(side='right', padx=5)
+    CTkButton(frame_botoes, text="Fechar", command=fechar_janela_admin).pack(side='right', padx=5)
+    CTkButton(frame_botoes, text="Atualizar", command=exibir_registros).pack(side='right', padx=5)
 
     # Aba Adicionar
     labels_adicionar = ['Nome', 'CPF', 'Email', 'endereço', 'Telefone', 'Usuário', 'Senha']
@@ -463,10 +464,10 @@ def open_administracao():
     entry_usuario = entries_adicionar['Usuário']
     entry_senha = entries_adicionar['Senha']
 
-    ttk.Button(aba_adicionar, text="Adicionar", command=adicionar_registro).grid(row=len(labels_adicionar), column=1, pady=10)
+    CTkButton(aba_adicionar, text="Adicionar", command=adicionar_registro).grid(row=len(labels_adicionar), column=1, pady=10)
 
     # Aba Deletar
-    ttk.Button(aba_deletar, text="Deletar", command=deletar_registro).pack(pady=10)
+    CTkButton(aba_deletar, text="Deletar", command=deletar_registro).pack(pady=10)
 
     # Aba Editar
     labels_editar = ['Campo', 'Novo Valor']
@@ -483,7 +484,7 @@ def open_administracao():
 
     entry_novo_valor = entries_editar['Novo Valor']
 
-    ttk.Button(aba_editar, text="Editar", command=editar_registro).grid(row=len(labels_editar), column=1, pady=10)
+    CTkButton(aba_editar, text="Editar", command=editar_registro).grid(row=len(labels_editar), column=1, pady=10)
 
     exibir_registros()
 # Função principal para criar o menu inicial
@@ -493,6 +494,8 @@ def menu_inicial():
     menu_inicial = Ctk.CTkToplevel()
     menu_inicial.title("SwanShine")
     menu_inicial.geometry("1280x720")
+    menu_inicial.state('zoomed')
+
     
     # Carregamento das imagens dos ícones
     try:
