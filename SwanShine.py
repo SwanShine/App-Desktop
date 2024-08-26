@@ -4,6 +4,7 @@ import mysql.connector
 from mysql.connector import Error
 import customtkinter as Ctk
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
+from customtkinter import *
 from PIL import ImageTk, Image
 import pyglet
 
@@ -447,7 +448,7 @@ def open_administracao():
     ttk.Button(frame_botoes, text="Atualizar", command=exibir_registros).pack(side='right', padx=5)
 
     # Aba Adicionar
-    labels_adicionar = ['Nome', 'CPF', 'Email', 'endereco', 'Telefone', 'Usuário', 'Senha']
+    labels_adicionar = ['Nome', 'CPF', 'Email', 'endereço', 'Telefone', 'Usuário', 'Senha']
     entries_adicionar = {}
     for i, label in enumerate(labels_adicionar):
         ttk.Label(aba_adicionar, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
@@ -595,34 +596,32 @@ def tela_login():
     global tela_login, input_usuario, input_senha
     
 tela_login = Ctk.CTk()
-tela_login._set_appearance_mode("System")
-tela_login.geometry("500x500")
 tela_login.title("Login")
-tela_login.maxsize(width=500, height=500)
-tela_login.minsize(width=500, height=500)
+tela_login.config(bg="white")
+tela_login.resizable(False, False)
 
-rightframe = Frame(tela_login, width=250, height=500, relief="raise", bg="orange")
-rightframe.pack(side="right", fill="both")
+bg_img = CTkImage(dark_image=Image.open("Logo_tela_de_login.png"), size=(500, 500))
 
-label_usuario = CTkLabel(rightframe, width=250, height=50, text="Usuario", font=("Inter-Regular", 16,"italic"))
-label_usuario.pack(pady=10)
+bg_lab = CTkLabel(tela_login, image=bg_img, text="")
+bg_lab.grid(row=0, column=0)
 
-input_usuario = CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
-input_usuario.pack(pady=10)
+frame1 = CTkFrame(tela_login,fg_color="white", bg_color="white", height=350, width=300,corner_radius=20)
+frame1.grid(row=0, column=1,padx=40)
 
-label_senha = CTkLabel(rightframe, width=250, height=50, text="Senha", font=("Inter-Regular", 16, "italic"))
-label_senha.pack(pady=10)
+title = CTkLabel(frame1,text="Login",text_color="Black",font=("",35,"bold"))
+title.grid(row=0,column=0,sticky="nw",pady=30,padx=100)
 
-input_senha = CTkEntry(rightframe, width=250, height=50, fg_color="white", font=("Inter-Regular", 16, "italic"))
-input_senha.pack(pady=10)
+input_usuario = CTkEntry(frame1,text_color="black", placeholder_text="Username", fg_color="white", placeholder_text_color="black",
+                         font=("",16,"bold"), width=200, corner_radius=15, height=45)
+input_usuario.grid(row=1,column=0,sticky="nwe",padx=30)
 
-button_entrar = CTkButton(rightframe, text="Entrar!", fg_color="black", command=login_valido_tela_selecionar_usuario, font=("Inter-Regular", 16, "italic"))
-button_entrar.place(x=50, y=330)
+input_senha = CTkEntry(frame1,text_color="black",placeholder_text="Password",fg_color="white",placeholder_text_color="black",
+                         font=("",16,"bold"), width=200,corner_radius=15, height=45, show="*")
+input_senha.grid(row=2,column=0,sticky="nwe",padx=30,pady=20)
 
-leftframe = Frame(tela_login, width=250, height=500, relief="raise", bg="orange")
-leftframe.pack(side="left", fill="both")
 
-label_imagem = CTkLabel(leftframe, width=250, height=250,text="")
-label_imagem.place(x=-100, y=-10)
+l_btn = CTkButton(frame1,text="Login",font=("",15,"bold"),height=40,width=60,fg_color="#FF66C4",cursor="hand2",
+                  corner_radius=15,command=login_valido_tela_selecionar_usuario,)
+l_btn.grid(row=3,column=0,sticky="ne",pady=20, padx=100)
 
 tela_login.mainloop()
