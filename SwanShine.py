@@ -7,6 +7,7 @@ from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from customtkinter import *
 from PIL import ImageTk, Image
 import pyglet
+import webbrowser
 
 #Funções para fazer Login
 def login(usuario, senha):
@@ -77,11 +78,7 @@ def initialize_window():
     for widget in menu_inicial.winfo_children():
         widget.destroy()
         
-#Função para os botoes navbar     
-def check_for_updates():
-    # Função para verificar atualizações
-    # Este é um exemplo fictício; você deve substituir isso pelo código real
-    print("Verificando atualizações...")
+
 
 def fechar_profile():
     global janela_profile
@@ -182,25 +179,7 @@ janela_contato = None
 janela_sobre = None
 janela_administracao = None
 
-def open_profile():
-    global janela_profile
-    # Verifica se a janela está definida e se ainda existe
-    if janela_profile is None or not janela_profile.winfo_exists():
-        janela_profile = Ctk.CTkToplevel(menu_inicial)
-        janela_profile.title("Perfil")
-        janela_profile.geometry("400x300")
-
-        # Adiciona o perfil do usuário na janela
-        profile_usuario = Ctk.CTkLabel(janela_profile, text="usuario")
-        profile_usuario.pack(pady=10)
         
-        # Adiciona um botão para fechar a janela
-        close_button = Ctk.CTkButton(janela_profile, text="Fechar", command=fechar_profile)
-        close_button.pack(pady=10)
-    else:
-        janela_profile.lift()  # Traz a janela para o topo se já existir
-        
-
 def open_configuracoes():
     global theme_button
     global janela_configuracoes
@@ -213,37 +192,66 @@ def open_configuracoes():
         janela_configuracoes.title("Configurações")
         janela_configuracoes.geometry("400x300")
 
-        Ctk.CTkLabel(janela_configuracoes, text="Configurações").pack(pady=10)
+        Ctk.CTkLabel(janela_configuracoes, text="Configurações",font=("Bahnschrift", 15)).pack(pady=10)
 
-        theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Escuro", command=switch_theme)
+        theme_button = Ctk.CTkButton(janela_configuracoes, text="Tema Escuro",font=("Bahnschrift", 15) ,command=switch_theme)
         theme_button.pack(pady=10)
 
-        update_button = Ctk.CTkButton(janela_configuracoes, text="Buscar Atualizações", command=check_for_updates)
-        update_button.pack(pady=10)
-
-        close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar",command=fechar_config)
+        close_button = Ctk.CTkButton(janela_configuracoes, text="Fechar",font=("Bahnschrift", 15),command=fechar_config)
         close_button.pack(pady=10)
 
         # Forçar atualização dos widgets
         menu_inicial.update()
 
+def enviar_email():
+    # Abre o cliente de e-mail com o endereço preenchido
+    webbrowser.open("mailto:swanshine2023@gmail.com")
+
 def open_contato():
     global janela_contato
     if janela_contato is None or not janela_contato.winfo_exists():
         janela_contato = Ctk.CTkToplevel(menu_inicial)
+        janela_contato.geometry("400x300")
         janela_contato.title("Contato")
+        
+        label_contato = Ctk.CTkLabel(janela_contato,font=("Bahnschrift", 15), text="Email: swanshine2023@gmail.com")
+        label_contato.pack(pady=50)
+        
+        botao_email = Ctk.CTkButton(janela_contato, font=("Bahnschrift", 15),text="Entrar em contato via Email", command=enviar_email)
+        botao_email.pack(pady=20)
 
 def open_sobre():
     global janela_sobre
+    
     if janela_sobre is None or not janela_sobre.winfo_exists():
+        # Criação da janela sobre
         janela_sobre = Ctk.CTkToplevel(menu_inicial)
         janela_sobre.title("Sobre")
+        janela_sobre.geometry("500x300")
         
+        # Adiciona um título
+        titulo_sobre = CTkLabel(janela_sobre, text="VERSÃO EM DESENVOLVIMENTO", font=("Bahnschrift", 15))
+        titulo_sobre.pack(pady=(10, 5))
+        
+        # Adiciona o texto descritivo
+        texto_sobre = CTkLabel(janela_sobre, text="Esse App é um exemplo de como funcionaria o sistema de administração SwanShine",font=("Bahnschrift", 15))
+        texto_sobre.pack(pady=(0, 5))
+        
+        texto_sobre1 = CTkLabel(janela_sobre, text="Competências e Capacidades", font=("Bahnschrift", 15))
+        texto_sobre1.pack(pady=(0, 5))
+        
+        texto_sobre2 = CTkLabel(janela_sobre, text="Aplicativo destinado a administradores e gerentes SwanShine",font=("Bahnschrift", 15))
+        texto_sobre2.pack(pady=(0, 5))
+        
+        texto_sobre3 = CTkLabel(janela_sobre, text="Funções: Editar, Excluir e Adicionar",font=("Bahnschrift", 15))
+        texto_sobre3.pack(pady=(10, 0))
+
+
+
 def sair_menu():
-    resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?")
+    resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?",)
     if resposta:
         menu_inicial.quit()  # Fecha a aplicação
-    
 
 # Tela de Administração
 def open_administracao():
@@ -423,14 +431,14 @@ def open_administracao():
     frame_input = ttk.Frame(janela_administracao)
     frame_input.pack(pady=10, padx=10, fill='x')
 
-    ttk.Label(frame_input, text="Selecionar Tabela").grid(row=0, column=0, padx=5, pady=5, sticky='e')
+    ttk.Label(frame_input, text="Selecionar Tabela",font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
     tabelas_disponiveis = ['admins', 'clientes', 'imagens', 'profissionais', 'serv_pro', 'serviços']
     combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
     combo_tabelas.grid(row=0, column=1, padx=5, pady=5)
     combo_tabelas.current(0)
     combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())  # Atualiza automaticamente ao selecionar
 
-    ttk.Label(frame_input, text="Filtrar por ID Cliente").grid(row=0, column=2, padx=5, pady=5, sticky='e')
+    ttk.Label(frame_input, text="Filtrar por ID Cliente",font=("Bahnschrift", 15)).grid(row=0, column=2, padx=5, pady=5, sticky='e')
     entry_id_cliente = ttk.Entry(frame_input, width=20)
     entry_id_cliente.grid(row=0, column=3, padx=5, pady=5)
 
@@ -445,8 +453,8 @@ def open_administracao():
     frame_botoes.pack(pady=10, padx=10)
 
     # Botões Fechar e Atualizar
-    CTkButton(frame_botoes, text="Fechar", command=fechar_janela_admin).pack(side='right', padx=5)
-    CTkButton(frame_botoes, text="Atualizar", command=exibir_registros).pack(side='right', padx=5)
+    CTkButton(frame_botoes, text="Fechar",font=("Bahnschrift", 15) ,command=fechar_janela_admin).pack(side='right', padx=5)
+    CTkButton(frame_botoes, text="Atualizar",font=("Bahnschrift", 15) ,command=exibir_registros).pack(side='right', padx=5)
 
     # Aba Adicionar
     labels_adicionar = ['Nome', 'CPF', 'Email', 'endereço', 'Telefone', 'Usuário', 'Senha']
@@ -464,10 +472,10 @@ def open_administracao():
     entry_usuario = entries_adicionar['Usuário']
     entry_senha = entries_adicionar['Senha']
 
-    CTkButton(aba_adicionar, text="Adicionar", command=adicionar_registro).grid(row=len(labels_adicionar), column=1, pady=10)
+    CTkButton(aba_adicionar, text="Adicionar", font=("Bahnschrift", 15),command=adicionar_registro).grid(row=len(labels_adicionar), column=1, pady=10)
 
     # Aba Deletar
-    CTkButton(aba_deletar, text="Deletar", command=deletar_registro).pack(pady=10)
+    CTkButton(aba_deletar, text="Deletar", font=("Bahnschrift", 15),command=deletar_registro).pack(pady=10)
 
     # Aba Editar
     labels_editar = ['Campo', 'Novo Valor']
@@ -475,7 +483,7 @@ def open_administracao():
     for i, label in enumerate(labels_editar):
         ttk.Label(aba_editar, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
         if label == 'Campo':
-            campos_disponiveis = ['cpf', 'Email', 'endereco', 'Nome', 'Telefone', 'Usuario', 'Senha']
+            campos_disponiveis = ['Email', 'endereco', 'Nome', 'Telefone', 'Usuario', 'Senha']
             combo_campos = ttk.Combobox(aba_editar, values=campos_disponiveis, width=27)
             combo_campos.grid(row=i, column=1, padx=5, pady=5)
         else:
@@ -484,7 +492,7 @@ def open_administracao():
 
     entry_novo_valor = entries_editar['Novo Valor']
 
-    CTkButton(aba_editar, text="Editar", command=editar_registro).grid(row=len(labels_editar), column=1, pady=10)
+    CTkButton(aba_editar, text="Editar", font=("Bahnschrift", 15),command=editar_registro).grid(row=len(labels_editar), column=1, pady=10)
 
     exibir_registros()
 # Função principal para criar o menu inicial
@@ -524,15 +532,15 @@ def menu_inicial():
     y = 80
 
     # Opções no Navbar
-    options = ["Profile", "Configurações", "Contato", "Sobre", "Administração", "Sair"]
-    commands = [open_profile, open_configuracoes, open_contato, open_sobre, open_administracao, sair_menu]
+    options = ["Configurações", "Contato", "Sobre", "Administração", "Sair"]
+    commands = [open_configuracoes, open_contato, open_sobre, open_administracao, sair_menu]
 
     # Botões de opções no Navbar
     for option, command in zip(options, commands):
         button = Ctk.CTkButton(
             navmenu_inicial,
             text=option,
-            font=("Bahnschrift Light", 15),
+            font=("Bahnschrift", 15),
             fg_color=current_theme["button_color"],  # Cor de fundo do botão
             hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
             text_color=current_theme["foreground"],  # Cor do texto do botão
@@ -611,19 +619,19 @@ bg_lab.grid(row=0, column=0)
 frame1 = CTkFrame(tela_login,fg_color="white", bg_color="white", height=350, width=300,corner_radius=20)
 frame1.grid(row=0, column=1,padx=40)
 
-title = CTkLabel(frame1,text="Login",text_color="Black",font=("",35))
+title = CTkLabel(frame1,text="Login",text_color="Black",font=("Bahnschrift", 35))
 title.grid(row=0,column=0,sticky="nw",pady=30,padx=100)
 
 input_usuario = CTkEntry(frame1,text_color="black", placeholder_text="Username", fg_color="white", placeholder_text_color="black",
-                         font=("",16), width=200, corner_radius=15, height=45)
+                         font=("Bahnschrift", 15), width=200, corner_radius=15, height=45)
 input_usuario.grid(row=1,column=0,sticky="nwe",padx=30)
 
 input_senha = CTkEntry(frame1,text_color="black",placeholder_text="Password",fg_color="white",placeholder_text_color="black",
-                         font=("",16), width=200,corner_radius=15, height=45, show="*")
+                         font=("Bahnschrift", 15), width=200,corner_radius=15, height=45, show="*")
 input_senha.grid(row=2,column=0,sticky="nwe",padx=30,pady=20)
 
 
-l_btn = CTkButton(frame1,text="Login",font=("",15),height=40,width=60,fg_color="#FF66C4",cursor="hand2",
+l_btn = CTkButton(frame1,text="Login",font=("Bahnschrift", 15),height=40,width=60,fg_color="#FF66C4",cursor="hand2",
                   corner_radius=15,command=login_valido_tela_selecionar_usuario,)
 l_btn.grid(row=3,column=0,sticky="ne",pady=20, padx=100)
 
