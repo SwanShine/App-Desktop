@@ -252,8 +252,12 @@ def sair_menu():
     resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?",)
     if resposta:
         menu_inicial.quit()  # Fecha a aplicação
+####################################################################################################################
+import mysql.connector
+from mysql.connector import Error
+import tkinter as tk
+from tkinter import ttk, messagebox
 
-# Tela de Administração
 def open_administracao():
     def conectar_bd():
         try:
@@ -270,6 +274,16 @@ def open_administracao():
             print(f"Erro ao conectar ao MySQL: {e}")
             return None
 
+    def atualizar_treeview(colunas):
+        tree.delete(*tree.get_children())
+        tree["columns"] = colunas
+
+        # Configuração das colunas com larguras específicas e alinhamento centralizado
+        for col in colunas:
+            tree.heading(col, text=col.title(), anchor="center")
+            largura = 120 if col.lower() == "nome" else 100  # Ajuste específico para cada coluna
+            tree.column(col, anchor='center', width=largura, minwidth=50)
+
     def exibir_registros():
         conn = conectar_bd()
         if conn:
@@ -277,58 +291,88 @@ def open_administracao():
                 cursor = conn.cursor()
                 tabela_selecionada = combo_tabelas.get()
                 id_cliente = entry_id_cliente.get()
+
                 query = {
                     "admins": "SELECT Id, Nome, Usuario, Senha FROM admins",
-                    "clientes": "SELECT id, Nome, endereco, Email, cpf, Telefone, senha FROM clientes",
-                    "imagens": "SELECT id, descricao FROM imagens",
-                    "profissionais": "SELECT id, nome, email, cpf FROM profissionais",
-                    "serv_pro": "SELECT Id_profissionais FROM serv_pro",
-                    "serviços": "SELECT Nome, Preço, Descrição, Id_clientes, Id_profissionais FROM serviços"
+                    "clientes": "SELECT id, Nome, endereco, email, cpf, telefone, genero, senha FROM clientes",
+                    "profissionais": "SELECT id, nome, email, cpf FROM profissionais"
                 }
-                
+
+                colunas = {
+                    "admins": ("Id", "Nome", "Usuario", "Senha"),
+                    "clientes": ("id", "Nome", "endereco", "email", "cpf", "telefone", "genero", "senha"),
+                    "profissionais": ("id", "nome", "email", "cpf")
+                }
+
+                atualizar_treeview(colunas[tabela_selecionada])
+
                 if tabela_selecionada == "clientes" and id_cliente:
                     cursor.execute(f"{query[tabela_selecionada]} WHERE id = %s", (id_cliente,))
                 else:
                     cursor.execute(query[tabela_selecionada])
-                    
+
                 rows = cursor.fetchall()
-                tree.delete(*tree.get_children())
                 for row in rows:
                     tree.insert('', 'end', values=row)
             except Error as e:
                 print(f"Erro ao executar consulta: {e}")
             finally:
                 conn.close()
+        
+        atualizar_aba_adicionar()
 
-    def adicionar_registro():
-        nome = entry_nome.get()
-        cpf = entry_cpf.get()
-        email = entry_email.get()
-        endereco = entry_endereco.get()
-        telefone = entry_telefone.get()
-        senha = entry_senha.get()
-        usuario = entry_usuario.get()
+    def atualizar_aba_adicionar():
+        for widget in frame_adicionar.winfo_children():
+            widget.destroy()
 
         tabela_selecionada = combo_tabelas.get()
+
+        campos_por_tabela = {
+            "clientes": [("Nome", "entry_nome"), ("Endereço", "entry_endereco"), ("Email", "entry_email"), 
+                         ("CPF", "entry_cpf"), ("Telefone", "entry_telefone"), ("Gênero", "entry_genero"), 
+                         ("Senha", "entry_senha")],
+            "admins": [("Nome", "entry_nome"), ("Usuário", "entry_usuario"), ("Senha", "entry_senha")],
+            "profissionais": [("Nome", "entry_nome"), ("Email", "entry_email"), ("CPF", "entry_cpf")]
+        }
+
+        campos = campos_por_tabela.get(tabela_selecionada, [])
+
+        entradas = {}
+
+        for i, (label_text, entry_name) in enumerate(campos):
+            ttk.Label(frame_adicionar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+            entrada = ttk.Entry(frame_adicionar, width=30)
+            entrada.grid(row=i, column=1, padx=5, pady=5)
+            entradas[entry_name] = entrada
+
+        ttk.Button(frame_adicionar, text="Adicionar Registro", command=lambda: adicionar_registro(entradas)).grid(row=len(campos), columnspan=2, pady=10)
+
+    def adicionar_registro(entradas):
+        tabela_selecionada = combo_tabelas.get()
+        
+        valores = {campo: entradas[entrada].get() for campo, entrada in entradas.items()}
         
         if tabela_selecionada == "clientes":
-            if not all([nome, endereco, email, cpf, telefone, senha]):
+            if not all(valores.values()):
                 messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
                 return
-            query = "INSERT INTO clientes (Nome, endereco, Email, cpf, Telefone, senha) VALUES (%s, %s, %s, %s, %s, %s)"
-            values = (nome, endereco, email, cpf, telefone, senha)
+            query = "INSERT INTO clientes (Nome, endereco, email, cpf, telefone, senha, genero) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+            values = (valores["entry_nome"], valores["entry_endereco"], valores["entry_email"], valores["entry_cpf"], valores["entry_telefone"], valores["entry_senha"], valores["entry_genero"])
+        
         elif tabela_selecionada == "admins":
-            if not all([nome, usuario, senha]):
+            if not all(valores.values()):
                 messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
                 return
             query = "INSERT INTO admins (Nome, Usuario, Senha) VALUES (%s, %s, %s)"
-            values = (nome, usuario, senha)
+            values = (valores["entry_nome"], valores["entry_usuario"], valores["entry_senha"])
+        
         elif tabela_selecionada == "profissionais":
-            if not all([nome, email, cpf]):
+            if not all(valores.values()):
                 messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
                 return
             query = "INSERT INTO profissionais (nome, email, cpf) VALUES (%s, %s, %s)"
-            values = (nome, email, cpf)
+            values = (valores["entry_nome"], valores["entry_email"], valores["entry_cpf"])
+
         else:
             messagebox.showwarning("Tabela Não Suportada", "Adicionar registros não é suportado para esta tabela.")
             return
@@ -341,72 +385,41 @@ def open_administracao():
                     cursor.execute(query, values)
                     conn.commit()
                     exibir_registros()
-                    for entry in [entry_cpf, entry_email, entry_endereco, entry_nome, entry_telefone, entry_usuario, entry_senha]:
-                        entry.delete(0, tk.END)
+                    for entrada in entradas.values():
+                        entrada.delete(0, tk.END)
                 except Error as e:
                     print(f"Erro ao adicionar registro: {e}")
                 finally:
                     conn.close()
 
-    def deletar_registro():
-        selected_item = tree.selection()
-        if selected_item and messagebox.askokcancel("Confirmação", "Você realmente deseja deletar o(s) registro(s) selecionado(s)?"):
-            conn = conectar_bd()
-            if conn:
+    def desativar_registro():
+        conn = conectar_bd()
+        if conn:
+            tabela_selecionada = combo_tabelas.get()
+            id_cliente = entry_id_cliente.get()
+
+            if not id_cliente:
+                messagebox.showwarning("ID Necessário", "Por favor, insira o ID do registro que deseja desativar.")
+                return
+            
+            query = {
+                "clientes": "UPDATE clientes SET ativo = 0 WHERE id = %s",
+                "admins": "UPDATE admins SET ativo = 0 WHERE Id = %s",
+                "profissionais": "UPDATE profissionais SET ativo = 0 WHERE id = %s"
+            }
+
+            if messagebox.askokcancel("Confirmação", "Você realmente deseja desativar este registro?"):
                 try:
                     cursor = conn.cursor()
-                    tabela_selecionada = combo_tabelas.get()
-                    for item in selected_item:
-                        id_registro = tree.item(item, 'values')[0]
-                        if tabela_selecionada == "clientes":
-                            cursor.execute("DELETE FROM clientes WHERE id=%s", (id_registro,))
-                        elif tabela_selecionada == "admins":
-                            cursor.execute("DELETE FROM admins WHERE Id=%s", (id_registro,))
-                        elif tabela_selecionada == "profissionais":
-                            cursor.execute("DELETE FROM profissionais WHERE id=%s", (id_registro,))
-                        conn.commit()
-                        tree.delete(item)
+                    cursor.execute(query[tabela_selecionada], (id_cliente,))
+                    conn.commit()
+                    exibir_registros()
                 except Error as e:
-                    print(f"Erro ao deletar registro: {e}")
+                    print(f"Erro ao desativar registro: {e}")
                 finally:
                     conn.close()
 
-    def editar_registro():
-        selected_item = tree.selection()
-        novo_valor = entry_novo_valor.get()
-        campo = combo_campos.get()
-        if selected_item and novo_valor and campo:
-            if messagebox.askokcancel("Confirmação", "Você realmente deseja editar o campo selecionado?"):
-                conn = conectar_bd()
-                if conn:
-                    try:
-                        cursor = conn.cursor()
-                        tabela_selecionada = combo_tabelas.get()
-                        for item in selected_item:
-                            id_registro = tree.item(item, 'values')[0]
-                            if tabela_selecionada == "clientes":
-                                cursor.execute(f"UPDATE clientes SET {campo}=%s WHERE id=%s", (novo_valor, id_registro))
-                            elif tabela_selecionada == "admins":
-                                cursor.execute(f"UPDATE admins SET {campo}=%s WHERE Id=%s", (novo_valor, id_registro))
-                            elif tabela_selecionada == "profissionais":
-                                cursor.execute(f"UPDATE profissionais SET {campo}=%s WHERE id=%s", (novo_valor, id_registro))
-                            conn.commit()
-                            valores_atuais = list(tree.item(item, 'values'))
-                            indice_campo = tree["columns"].index(campo)
-                            valores_atuais[indice_campo] = novo_valor
-                            tree.item(item, values=valores_atuais)
-                    except Error as e:
-                        print(f"Erro ao editar registro: {e}")
-                    finally:
-                        conn.close()
-
-    def confirmar_filtro():
-        exibir_registros()
-
-    def fechar_janela_admin():
-        janela_administracao.destroy()
-
-    # Criando a interface
+    # Configurações da janela principal
     janela_administracao = tk.Tk()
     janela_administracao.title("Consulta e Edição de Registros")
     janela_administracao.geometry("1280x720")
@@ -414,87 +427,46 @@ def open_administracao():
 
     estilo = ttk.Style()
     estilo.theme_use('clam')
-
+    estilo.configure("TButton", background="#4CAF50", foreground="white", font=("Arial", 12), padding=10)
+    estilo.map("TButton", background=[("active", "#45a049")])
+    estilo.configure("TLabel", font=("Arial", 12))
+    
     notebook = ttk.Notebook(janela_administracao)
     notebook.pack(pady=10, expand=True, fill='both')
 
-    # Abas
     aba_adicionar = ttk.Frame(notebook)
-    aba_deletar = ttk.Frame(notebook)
-    aba_editar = ttk.Frame(notebook)
-
     notebook.add(aba_adicionar, text="Adicionar")
-    notebook.add(aba_deletar, text="Deletar")
-    notebook.add(aba_editar, text="Editar")
 
-    # Frame comum para selecionar tabela e exibir registros
     frame_input = ttk.Frame(janela_administracao)
     frame_input.pack(pady=10, padx=10, fill='x')
 
-    ttk.Label(frame_input, text="Selecionar Tabela",font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
-    tabelas_disponiveis = ['admins', 'clientes', 'imagens', 'profissionais', 'serv_pro', 'serviços']
+    ttk.Label(frame_input, text="Selecionar Tabela", font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
+    tabelas_disponiveis = ['admins', 'clientes', 'profissionais']
     combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
     combo_tabelas.grid(row=0, column=1, padx=5, pady=5)
     combo_tabelas.current(0)
-    combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())  # Atualiza automaticamente ao selecionar
+    combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())
 
-    ttk.Label(frame_input, text="Filtrar por ID Cliente",font=("Bahnschrift", 15)).grid(row=0, column=2, padx=5, pady=5, sticky='e')
     entry_id_cliente = ttk.Entry(frame_input, width=20)
     entry_id_cliente.grid(row=0, column=3, padx=5, pady=5)
 
-    # Árvore para exibir registros
-    tree = ttk.Treeview(janela_administracao, columns=(1, 2, 3, 4, 5, 6, 7, 8, 9), show='headings')
-    tree.pack(pady=20, padx=20, fill='both', expand=True)
+    ttk.Button(frame_input, text="Desativar Registro", command=desativar_registro).grid(row=0, column=4, padx=5, pady=5)
 
-    for col in tree['columns']:
-        tree.heading(col, text=col)
+    tree = ttk.Treeview(janela_administracao, columns=(), show='headings')
+    tree.pack(pady=10, padx=10, expand=True, fill='both')
 
-    frame_botoes = ttk.Frame(janela_administracao)
-    frame_botoes.pack(pady=10, padx=10)
-
-    # Botões Fechar e Atualizar
-    CTkButton(frame_botoes, text="Fechar",font=("Bahnschrift", 15) ,command=fechar_janela_admin).pack(side='right', padx=5)
-    CTkButton(frame_botoes, text="Atualizar",font=("Bahnschrift", 15) ,command=exibir_registros).pack(side='right', padx=5)
-
-    # Aba Adicionar
-    labels_adicionar = ['Nome', 'CPF', 'Email', 'endereço', 'Telefone', 'Usuário', 'Senha']
-    entries_adicionar = {}
-    for i, label in enumerate(labels_adicionar):
-        ttk.Label(aba_adicionar, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
-        entries_adicionar[label] = ttk.Entry(aba_adicionar, width=30)
-        entries_adicionar[label].grid(row=i, column=1, padx=5, pady=5)
-
-    entry_nome = entries_adicionar['Nome']
-    entry_cpf = entries_adicionar['CPF']
-    entry_email = entries_adicionar['Email']
-    entry_endereco = entries_adicionar['endereço']
-    entry_telefone = entries_adicionar['Telefone']
-    entry_usuario = entries_adicionar['Usuário']
-    entry_senha = entries_adicionar['Senha']
-
-    CTkButton(aba_adicionar, text="Adicionar", font=("Bahnschrift", 15),command=adicionar_registro).grid(row=len(labels_adicionar), column=1, pady=10)
-
-    # Aba Deletar
-    CTkButton(aba_deletar, text="Deletar", font=("Bahnschrift", 15),command=deletar_registro).pack(pady=10)
-
-    # Aba Editar
-    labels_editar = ['Campo', 'Novo Valor']
-    entries_editar = {}
-    for i, label in enumerate(labels_editar):
-        ttk.Label(aba_editar, text=label).grid(row=i, column=0, padx=5, pady=5, sticky='e')
-        if label == 'Campo':
-            campos_disponiveis = ['Email', 'endereco', 'Nome', 'Telefone', 'Usuario', 'Senha']
-            combo_campos = ttk.Combobox(aba_editar, values=campos_disponiveis, width=27)
-            combo_campos.grid(row=i, column=1, padx=5, pady=5)
-        else:
-            entries_editar[label] = ttk.Entry(aba_editar, width=30)
-            entries_editar[label].grid(row=i, column=1, padx=5, pady=5)
-
-    entry_novo_valor = entries_editar['Novo Valor']
-
-    CTkButton(aba_editar, text="Editar", font=("Bahnschrift", 15),command=editar_registro).grid(row=len(labels_editar), column=1, pady=10)
+    frame_adicionar = ttk.Frame(aba_adicionar)
+    frame_adicionar.pack(pady=10, padx=10)
 
     exibir_registros()
+
+    janela_administracao.mainloop()
+
+open_administracao()
+
+
+###################################################################################################################
+
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
