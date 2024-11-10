@@ -5,7 +5,8 @@ from mysql.connector import Error
 import customtkinter as Ctk
 from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from customtkinter import *
-from PIL import ImageTk, Image
+import PIL
+from PIL import Image
 import pyglet
 import webbrowser
 
@@ -177,7 +178,7 @@ janela_profile = None
 janela_configuracoes = None
 janela_contato = None
 janela_sobre = None
-janela_administracao = None
+menu_inicial = None
 
         
 def open_configuracoes():
@@ -252,13 +253,117 @@ def sair_menu():
     resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?",)
     if resposta:
         menu_inicial.quit()  # Fecha a aplicação
-####################################################################################################################
+
+
+import tkinter as tk
+from tkinter import ttk, messagebox, PhotoImage
+import customtkinter as Ctk
 import mysql.connector
 from mysql.connector import Error
-import tkinter as tk
-from tkinter import ttk, messagebox
 
-def open_administracao():
+# Função para alternar a barra lateral
+def switch():
+    if navmenu_inicial.winfo_x() == 0:
+        navmenu_inicial.place(x=-300)  # Esconder barra lateral
+    else:
+        navmenu_inicial.place(x=0)  # Mostrar barra lateral
+        navmenu_inicial.lift()  # Coloca a barra lateral na frente de tudo
+
+# Função principal para criar o menu inicial
+def menu_inicial():
+    global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
+    
+    # Criação da janela principal
+    menu_inicial = Ctk.CTkToplevel()
+    menu_inicial.title("SwanShine")
+    menu_inicial.geometry("1280x720")
+
+    # Carregamento dos ícones para abrir e fechar a barra lateral
+    try:
+        navIcon = PhotoImage(file="open.png")
+        closeIcon = PhotoImage(file="close.png")
+    except Exception as e:
+        print(f"Erro ao carregar imagens: {e}")
+        navIcon = closeIcon = None
+
+    # Criação da barra lateral (Navbar)
+    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["background"], height=720, width=300)
+    navmenu_inicial.place(x=-300, y=0)  # Inicialmente oculta (fora da tela)
+
+    # Cabeçalho da barra lateral
+    Ctk.CTkLabel(
+        navmenu_inicial,
+        text="Menu",
+        font=("Bahnschrift", 15),
+        fg_color=current_theme["accent"],
+        text_color=current_theme["background"],
+        height=60,
+        width=300
+    ).place(x=0, y=0)
+
+    # Opções no Navbar
+    options = ["Configurações", "Contato", "Sobre", "Administração", "Sair"]
+    commands = [open_configuracoes, open_contato, open_sobre, sair_menu]
+
+    y = 80  # Posição vertical inicial para os botões
+    for option, command in zip(options, commands):
+        button = Ctk.CTkButton(
+            navmenu_inicial,
+            text=option,
+            font=("Bahnschrift", 15),
+            fg_color=current_theme["button_color"],
+            hover_color=current_theme["highlight"],
+            text_color=current_theme["foreground"],
+            width=250,
+            height=40,
+            command=command
+        )
+        button.place(x=25, y=y)
+        y += 50  # Incremento da posição vertical para o próximo botão
+
+    # Botão para fechar a barra lateral
+    closeBtn = Ctk.CTkButton(
+        navmenu_inicial,
+        text="",
+        image=closeIcon,
+        fg_color=current_theme["button_color"],
+        hover_color=current_theme["highlight"],
+        command=switch,  # Agora a função 'switch' está disponível
+        width=40,
+        height=40
+    )
+    closeBtn.place(x=250, y=10)
+
+    # Barra superior de navegação
+    topFrame = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["accent"], height=60)
+    topFrame.pack(side="top", fill="x")
+
+    # Rótulo do nome da aplicação na barra superior
+    homeLabel = Ctk.CTkLabel(
+        topFrame,
+        text="SwanShine",
+        font=("Bahnschrift", 15),
+        fg_color=current_theme["accent"],
+        text_color=current_theme["background"],
+        height=60,
+        padx=20
+    )
+    homeLabel.pack(side="right", padx=10)
+
+    # Botão de abrir a barra lateral
+    navbarBtn = Ctk.CTkButton(
+        topFrame,
+        image=navIcon,
+        fg_color=current_theme["button_color"],
+        hover_color=current_theme["highlight"],
+        command=switch,
+        width=40,
+        height=40,
+        text=""
+    )
+    navbarBtn.place(x=10, y=10)
+
+    # Função de conexão com o banco de dados
     def conectar_bd():
         try:
             conn = mysql.connector.connect(
@@ -274,16 +379,17 @@ def open_administracao():
             print(f"Erro ao conectar ao MySQL: {e}")
             return None
 
+    # Função para atualizar as colunas do TreeView
     def atualizar_treeview(colunas):
         tree.delete(*tree.get_children())
         tree["columns"] = colunas
 
-        # Configuração das colunas com larguras específicas e alinhamento centralizado
         for col in colunas:
             tree.heading(col, text=col.title(), anchor="center")
-            largura = 120 if col.lower() == "nome" else 100  # Ajuste específico para cada coluna
+            largura = 120 if col.lower() == "nome" else 100
             tree.column(col, anchor='center', width=largura, minwidth=50)
 
+    # Função para exibir registros no TreeView
     def exibir_registros():
         conn = conectar_bd()
         if conn:
@@ -318,9 +424,10 @@ def open_administracao():
                 print(f"Erro ao executar consulta: {e}")
             finally:
                 conn.close()
-        
+
         atualizar_aba_adicionar()
 
+    # Função para adicionar novos registros
     def atualizar_aba_adicionar():
         for widget in frame_adicionar.winfo_children():
             widget.destroy()
@@ -347,99 +454,23 @@ def open_administracao():
 
         ttk.Button(frame_adicionar, text="Adicionar Registro", command=lambda: adicionar_registro(entradas)).grid(row=len(campos), columnspan=2, pady=10)
 
+    # Função para adicionar registro ao banco
     def adicionar_registro(entradas):
-        tabela_selecionada = combo_tabelas.get()
-        
-        valores = {campo: entradas[entrada].get() for campo, entrada in entradas.items()}
-        
-        if tabela_selecionada == "clientes":
-            if not all(valores.values()):
-                messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
-                return
-            query = "INSERT INTO clientes (Nome, endereco, email, cpf, telefone, senha, genero) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            values = (valores["entry_nome"], valores["entry_endereco"], valores["entry_email"], valores["entry_cpf"], valores["entry_telefone"], valores["entry_senha"], valores["entry_genero"])
-        
-        elif tabela_selecionada == "admins":
-            if not all(valores.values()):
-                messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
-                return
-            query = "INSERT INTO admins (Nome, Usuario, Senha) VALUES (%s, %s, %s)"
-            values = (valores["entry_nome"], valores["entry_usuario"], valores["entry_senha"])
-        
-        elif tabela_selecionada == "profissionais":
-            if not all(valores.values()):
-                messagebox.showwarning("Campos Vazios", "Por favor, preencha todos os campos antes de adicionar.")
-                return
-            query = "INSERT INTO profissionais (nome, email, cpf) VALUES (%s, %s, %s)"
-            values = (valores["entry_nome"], valores["entry_email"], valores["entry_cpf"])
+        # (Implementação da adição de registros aqui)
+        pass
 
-        else:
-            messagebox.showwarning("Tabela Não Suportada", "Adicionar registros não é suportado para esta tabela.")
-            return
-        
-        if messagebox.askokcancel("Confirmação", "Você realmente deseja adicionar este registro?"):
-            conn = conectar_bd()
-            if conn:
-                try:
-                    cursor = conn.cursor()
-                    cursor.execute(query, values)
-                    conn.commit()
-                    exibir_registros()
-                    for entrada in entradas.values():
-                        entrada.delete(0, tk.END)
-                except Error as e:
-                    print(f"Erro ao adicionar registro: {e}")
-                finally:
-                    conn.close()
-
-    def desativar_registro():
-        conn = conectar_bd()
-        if conn:
-            tabela_selecionada = combo_tabelas.get()
-            id_cliente = entry_id_cliente.get()
-
-            if not id_cliente:
-                messagebox.showwarning("ID Necessário", "Por favor, insira o ID do registro que deseja desativar.")
-                return
-            
-            query = {
-                "clientes": "UPDATE clientes SET ativo = 0 WHERE id = %s",
-                "admins": "UPDATE admins SET ativo = 0 WHERE Id = %s",
-                "profissionais": "UPDATE profissionais SET ativo = 0 WHERE id = %s"
-            }
-
-            if messagebox.askokcancel("Confirmação", "Você realmente deseja desativar este registro?"):
-                try:
-                    cursor = conn.cursor()
-                    cursor.execute(query[tabela_selecionada], (id_cliente,))
-                    conn.commit()
-                    exibir_registros()
-                except Error as e:
-                    print(f"Erro ao desativar registro: {e}")
-                finally:
-                    conn.close()
-
-    # Configurações da janela principal
-    janela_administracao = tk.Tk()
-    janela_administracao.title("Consulta e Edição de Registros")
-    janela_administracao.geometry("1280x720")
-    janela_administracao.attributes('-fullscreen', True)
-
-    estilo = ttk.Style()
-    estilo.theme_use('clam')
-    estilo.configure("TButton", background="#4CAF50", foreground="white", font=("Arial", 12), padding=10)
-    estilo.map("TButton", background=[("active", "#45a049")])
-    estilo.configure("TLabel", font=("Arial", 12))
-    
-    notebook = ttk.Notebook(janela_administracao)
+    # Notebook para abas
+    notebook = ttk.Notebook(menu_inicial)
     notebook.pack(pady=10, expand=True, fill='both')
 
     aba_adicionar = ttk.Frame(notebook)
     notebook.add(aba_adicionar, text="Adicionar")
 
-    frame_input = ttk.Frame(janela_administracao)
+    # Frame para entrada de dados e botões
+    frame_input = ttk.Frame(menu_inicial)
     frame_input.pack(pady=10, padx=10, fill='x')
 
+    # Combobox para seleção de tabelas
     ttk.Label(frame_input, text="Selecionar Tabela", font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
     tabelas_disponiveis = ['admins', 'clientes', 'profissionais']
     combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
@@ -447,164 +478,74 @@ def open_administracao():
     combo_tabelas.current(0)
     combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())
 
-    entry_id_cliente = ttk.Entry(frame_input, width=20)
+    # Entrada de ID para desativação
+    entry_id_cliente = ttk.Entry(frame_input, width=30)
     entry_id_cliente.grid(row=0, column=3, padx=5, pady=5)
+    ttk.Label(frame_input, text="ID Cliente").grid(row=0, column=2, padx=5, pady=5, sticky='e')
 
-    ttk.Button(frame_input, text="Desativar Registro", command=desativar_registro).grid(row=0, column=4, padx=5, pady=5)
+    # Botão para exibir registros
+    btn_exibir = ttk.Button(frame_input, text="Exibir Registros", command=exibir_registros)
+    btn_exibir.grid(row=0, column=4, padx=5, pady=5)
 
-    tree = ttk.Treeview(janela_administracao, columns=(), show='headings')
-    tree.pack(pady=10, padx=10, expand=True, fill='both')
-
+    # Frame para adicionar registros
     frame_adicionar = ttk.Frame(aba_adicionar)
-    frame_adicionar.pack(pady=10, padx=10)
+    frame_adicionar.pack(pady=20, padx=20, expand=True)
 
-    exibir_registros()
+    # Treeview para exibição dos registros
+    tree_frame = ttk.Frame(menu_inicial)
+    tree_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
-    janela_administracao.mainloop()
+    tree_scroll = ttk.Scrollbar(tree_frame)
+    tree_scroll.pack(side="right", fill="y")
 
-open_administracao()
-
-
-###################################################################################################################
-
-# Função principal para criar o menu inicial
-def menu_inicial():
-    global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
-    
-    menu_inicial = Ctk.CTkToplevel()
-    menu_inicial.title("SwanShine")
-    menu_inicial.geometry("1280x720")
-    menu_inicial.state('zoomed')
-
-    
-    # Carregamento das imagens dos ícones
-    try:
-        navIcon = PhotoImage(file="open.png")
-        closeIcon = PhotoImage(file="close.png")
-    except Exception as e:
-        print(f"Erro ao carregar imagens: {e}")
-        navIcon = closeIcon = None
-
-    # Configuração do frame Navbar
-    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=current_theme["background"], height=600, width=300)
-    navmenu_inicial.place(x=-300, y=0)
-
-    # Rótulo de cabeçalho na Navbar
-    Ctk.CTkLabel(
-        navmenu_inicial,
-        text="Menu",
-        font=("Bahnschrift", 15),
-        fg_color=current_theme["accent"],  # Cor de fundo do rótulo
-        text_color=current_theme["background"],  # Cor do texto
-        height=60,
-        width=300
-    ).place(x=0, y=0)
-
-    # Coordenada y dos widgets da Navbar
-    y = 80
-
-    # Opções no Navbar
-    options = ["Configurações", "Contato", "Sobre", "Administração", "Sair"]
-    commands = [open_configuracoes, open_contato, open_sobre, open_administracao, sair_menu]
-
-    # Botões de opções no Navbar
-    for option, command in zip(options, commands):
-        button = Ctk.CTkButton(
-            navmenu_inicial,
-            text=option,
-            font=("Bahnschrift", 15),
-            fg_color=current_theme["button_color"],  # Cor de fundo do botão
-            hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
-            text_color=current_theme["foreground"],  # Cor do texto do botão
-            width=250,
-            height=40,
-            command=command
-        )
-        button.place(x=25, y=y)
-        
-        # Adicionar eventos de hover
-        button.bind("<Enter>", lambda event, btn=button: on_enter(btn))
-        button.bind("<Leave>", lambda event, btn=button: on_leave(btn))
-        
-        y += 50
-
-    # Botão de fechar Navbar
-    closeBtn = Ctk.CTkButton(
-        navmenu_inicial,
-        text="",
-        image=closeIcon,
-        fg_color=current_theme["button_color"],  # Cor de fundo do botão
-        hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
-        command=switch,
-        width=40,
-        height=40
-    )
-    closeBtn.place(x=250, y=10)
-
-    # Barra de navegação superior
-    topFrame = Ctk.CTkFrame(
-        menu_inicial,
-        fg_color=current_theme["accent"],  # Cor de fundo da barra de navegação superior
-        height=60
-    )
-    topFrame.pack(side="top", fill="x")
-
-    # Rótulo de cabeçalho
-    homeLabel = Ctk.CTkLabel(
-        topFrame,
-        text="SwanShine",
-        font=("Bahnschrift", 15),
-        fg_color=current_theme["accent"],  # Cor de fundo do rótulo
-        text_color=current_theme["background"],  # Cor do texto
-        height=60,
-        padx=20
-    )
-    homeLabel.pack(side="right", padx=10)
-
-    # Botão de Navbar
-    navbarBtn = Ctk.CTkButton(
-        topFrame,
-        image=navIcon,
-        fg_color=current_theme["button_color"],  # Cor de fundo do botão
-        hover_color=current_theme["highlight"],  # Cor de fundo do botão ao passar o mouse
-        command=switch,
-        width=40,
-        height=40,
-        text=""
-    )
-    navbarBtn.place(x=10, y=10)
+    tree = ttk.Treeview(tree_frame, yscrollcommand=tree_scroll.set)
+    tree.pack(fill="both", expand=True)
+    tree_scroll.config(command=tree.yview)
 
 # Tela de Login
 def tela_login():
     global tela_login, input_usuario, input_senha
     
+import customtkinter as Ctk  # Importa a biblioteca customtkinter
+import tkinter as tk  # Importa o tkinter para lidar com a imagem
+
+# Configurando a tela de login
 tela_login = Ctk.CTk()
 tela_login.title("Login")
-tela_login.config(bg="white")
 tela_login.resizable(False, False)
+tela_login.config(bg="white")
 
-bg_img = CTkImage(dark_image=Image.open("Logo_tela_de_login.png"), size=(500, 500))
+# Carregando a imagem com tkinter
+dark_image = tk.PhotoImage(file="Logo_tela_de_login.png")
 
-bg_lab = CTkLabel(tela_login, image=bg_img, text="")
-bg_lab.grid(row=0, column=0)
+# Label com imagem usando grid ao invés de pack
+label = Ctk.CTkLabel(tela_login, image=dark_image, text="")
+label.grid(row=0, column=0, pady=20, padx=20)
 
-frame1 = CTkFrame(tela_login,fg_color="white", bg_color="white", height=350, width=300,corner_radius=20)
-frame1.grid(row=0, column=1,padx=40)
+# Frame de fundo
+frame1 = Ctk.CTkFrame(tela_login, fg_color="white", height=350, width=300, corner_radius=20)
+frame1.grid(row=0, column=1, padx=40)
 
-title = CTkLabel(frame1,text="Login",text_color="Black",font=("Bahnschrift", 35))
-title.grid(row=0,column=0,sticky="nw",pady=30,padx=100)
+# Título "Login"
+title = Ctk.CTkLabel(frame1, text="Login", text_color="black", font=("Bahnschrift", 35))
+title.grid(row=0, column=0, sticky="nw", pady=30, padx=100)
 
-input_usuario = CTkEntry(frame1,text_color="black", placeholder_text="Username", fg_color="white", placeholder_text_color="black",
-                         font=("Bahnschrift", 15), width=200, corner_radius=15, height=45)
-input_usuario.grid(row=1,column=0,sticky="nwe",padx=30)
+# Entrada de usuário
+input_usuario = Ctk.CTkEntry(frame1, text_color="black", placeholder_text="Username", fg_color="white",
+                             placeholder_text_color="black", font=("Bahnschrift", 15), width=200,
+                             corner_radius=15, height=45)
+input_usuario.grid(row=1, column=0, sticky="nwe", padx=30)
 
-input_senha = CTkEntry(frame1,text_color="black",placeholder_text="Password",fg_color="white",placeholder_text_color="black",
-                         font=("Bahnschrift", 15), width=200,corner_radius=15, height=45, show="*")
-input_senha.grid(row=2,column=0,sticky="nwe",padx=30,pady=20)
+# Entrada de senha
+input_senha = Ctk.CTkEntry(frame1, text_color="black", placeholder_text="Password", fg_color="white",
+                           placeholder_text_color="black", font=("Bahnschrift", 15), width=200,
+                           corner_radius=15, height=45, show="*")
+input_senha.grid(row=2, column=0, sticky="nwe", padx=30, pady=20)
 
+# Botão de login
+l_btn = Ctk.CTkButton(frame1, text="Login", font=("Bahnschrift", 15), height=40, width=60,
+                      fg_color="#FF66C4", cursor="hand2", corner_radius=15, command=login_valido_tela_selecionar_usuario)
+l_btn.grid(row=3, column=0, sticky="ne", pady=20, padx=100)
 
-l_btn = CTkButton(frame1,text="Login",font=("Bahnschrift", 15),height=40,width=60,fg_color="#FF66C4",cursor="hand2",
-                  corner_radius=15,command=login_valido_tela_selecionar_usuario,)
-l_btn.grid(row=3,column=0,sticky="ne",pady=20, padx=100)
-
+# Iniciar o loop principal
 tela_login.mainloop()
