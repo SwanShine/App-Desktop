@@ -302,18 +302,33 @@ def atualizar_treeview(cursor, rows):
     for row in rows:
         tree.insert('', 'end', values=row)
 
-# Função para exibir registros
+# Função para exibir registros com filtro de ID
 def exibir_registros():
     conn = conectar_bd()
     if conn:
         try:
             cursor = conn.cursor()
             tabela_selecionada = combo_tabelas.get()
+
+            # Obtendo o valor de ID
+            id_cliente = entry_id_cliente.get().strip()
+
+            # Construção da query com base no filtro
             query = {
                 "admins": f"SELECT Id, Nome, Usuario, {'REPEAT(\'*\', CHAR_LENGTH(Senha)) AS Senha' if senha_censurada else 'Senha'} FROM admins",
                 "clientes": f"SELECT id, Nome, endereco, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
                 "profissionais": "SELECT id, nome, email, cpf FROM profissionais"
             }
+
+            # Adicionando o filtro por ID, se o ID for informado
+            if id_cliente:
+                if tabela_selecionada == "admins":
+                    query["admins"] += f" WHERE Id = {id_cliente}"
+                elif tabela_selecionada == "clientes":
+                    query["clientes"] += f" WHERE id = {id_cliente}"
+                elif tabela_selecionada == "profissionais":
+                    query["profissionais"] += f" WHERE id = {id_cliente}"
+
             cursor.execute(query[tabela_selecionada])
             rows = cursor.fetchall()
             atualizar_treeview(cursor, rows)
@@ -323,7 +338,13 @@ def exibir_registros():
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
-    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente
+    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook
+
+    # Função para alternar a exibição da senha
+    def alternar_senha():
+        global senha_censurada
+        senha_censurada = not senha_censurada
+        exibir_registros()
 
     # Criação da janela principal
     menu_inicial = Ctk.CTkToplevel()
@@ -420,23 +441,33 @@ def menu_inicial():
     )
     navbarBtn.place(x=10, y=10)
 
-    # Frame para entrada de dados e botões
-    frame_input = ttk.Frame(menu_inicial)
+    # Criando a área de abas (tabs)
+    notebook = ttk.Notebook(menu_inicial)
+    notebook.pack(pady=10, padx=10, fill='both', expand=True)
+
+    # Abas para navegação
+    aba_adicionar = ttk.Frame(notebook)
+    aba_editar = ttk.Frame(notebook)
+    aba_desativar = ttk.Frame(notebook)
+
+    notebook.add(aba_adicionar, text="Adicionar")
+    notebook.add(aba_editar, text="Editar")
+    notebook.add(aba_desativar, text="Desativar")
+
+    # Frame de entrada para adicionar, editar e desativar
+    frame_input = ttk.Frame(aba_adicionar)
     frame_input.pack(pady=10, padx=10, fill='x')
 
-    # Combobox para seleção de tabelas
     ttk.Label(frame_input, text="Selecionar Tabela", font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
     tabelas_disponiveis = ['admins', 'clientes', 'profissionais']
     combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
     combo_tabelas.grid(row=0, column=1, padx=5, pady=5)
     combo_tabelas.current(0)
 
-    # Entrada de ID para filtragem
     ttk.Label(frame_input, text="Filtrar por ID").grid(row=1, column=0, padx=5, pady=5, sticky='e')
     entry_id_cliente = ttk.Entry(frame_input, width=30)
     entry_id_cliente.grid(row=1, column=1, padx=5, pady=5)
 
-    # Botão para filtrar registros
     button_filtrar = Ctk.CTkButton(
         frame_input,
         text="Filtrar por ID",
@@ -449,7 +480,7 @@ def menu_inicial():
     button_filtrar.grid(row=1, column=2, padx=5, pady=5)
 
     # Frame para exibir a tabela com scrollbar
-    frame_exibir = ttk.Frame(menu_inicial)
+    frame_exibir = ttk.Frame(aba_adicionar)
     frame_exibir.pack(pady=10, expand=True, fill='both')
 
     tree_scroll = ttk.Scrollbar(frame_exibir, orient="vertical")
@@ -459,12 +490,6 @@ def menu_inicial():
     tree.pack(fill="both", expand=True)
 
     tree_scroll.config(command=tree.yview)
-
-    # Função para alternar a exibição da senha
-    def alternar_senha():
-        global senha_censurada
-        senha_censurada = not senha_censurada
-        exibir_registros()
 
     # Botão para alternar exibição da senha
     button_alternar_senha = Ctk.CTkButton(
@@ -481,9 +506,11 @@ def menu_inicial():
     # Associar a função 'exibir_registros' à mudança de seleção do ComboBox
     combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())
 
-    # Chamar exibir_registros automaticamente para a tabela inicial
+    # Exibir os registros ao iniciar
     exibir_registros()
 
+    # Levanta a barra lateral acima dos outros widgets
+    navmenu_inicial.lift()
 
 
 ###############################################################################################
