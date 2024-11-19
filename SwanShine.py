@@ -335,6 +335,85 @@ def exibir_registros():
         finally:
             conn.close()
 
+import mysql.connector
+from mysql.connector import Error
+import customtkinter as Ctk
+from tkinter import ttk, PhotoImage, messagebox
+import tkinter as tk
+
+# Variável global para controle de exibição de senha
+senha_censurada = True
+
+# Função para conectar ao banco de dados
+def conectar_bd():
+    try:
+        conn = mysql.connector.connect(
+            host='swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com',
+            database='swanshine',
+            user='admin',
+            password='gLAHqWkvUoaxwBnm9wKD'
+        )
+        if conn.is_connected():
+            return conn
+    except Error as e:
+        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
+        return None
+
+# Função para atualizar o TreeView com os dados
+def atualizar_treeview(cursor, rows):
+    # Limpar os dados existentes
+    for item in tree.get_children():
+        tree.delete(item)
+
+    if not rows:
+        messagebox.showinfo("Nenhum Registro", "Nenhum registro encontrado.")
+        return
+
+    # Atualizar as colunas do TreeView
+    colunas = [desc[0] for desc in cursor.description]
+    tree.config(columns=colunas)
+    for coluna in colunas:
+        tree.heading(coluna, text=coluna)
+        tree.column(coluna, width=100, anchor="center")
+
+    # Inserir os dados no TreeView
+    for row in rows:
+        tree.insert('', 'end', values=row)
+
+# Função para exibir registros com filtro de ID
+def exibir_registros():
+    conn = conectar_bd()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            tabela_selecionada = combo_tabelas.get()
+
+            # Obtendo o valor de ID
+            id_cliente = entry_id_cliente.get().strip()
+
+            # Construção da query com base no filtro
+            query = {
+                "admins": f"SELECT Id, Nome, Usuario, {'REPEAT(\'*\', CHAR_LENGTH(Senha)) AS Senha' if senha_censurada else 'Senha'} FROM admins",
+"clientes": f"SELECT id, Nome, endereco, cep, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
+"profissionais": f"SELECT id, nome, email, cpf, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'}, celular, genero, cep FROM profissionais"
+
+            }
+
+            # Adicionando o filtro por ID, se o ID for informado
+            if id_cliente:
+                if tabela_selecionada == "admins":
+                    query["admins"] += f" WHERE Id = {id_cliente}"
+                elif tabela_selecionada == "clientes":
+                    query["clientes"] += f" WHERE id = {id_cliente}"
+                elif tabela_selecionada == "profissionais":
+                    query["profissionais"] += f" WHERE id = {id_cliente}"
+
+            cursor.execute(query[tabela_selecionada])
+            rows = cursor.fetchall()
+            atualizar_treeview(cursor, rows)
+        finally:
+            conn.close()
+
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
@@ -364,9 +443,9 @@ def menu_inicial():
     main_color = "#ef972f"
     hover_color = "#000000"  # Cor de hover (mais clara)
 
-    # Criação da barra lateral (Navbar)
+    # Criação da barra lateral (Navbar) com posição fixa
     navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=main_color, height=720, width=300)
-    navmenu_inicial.place(x=-300, y=0)
+    navmenu_inicial.place(x=-300, y=0)  # Posição inicial fora da tela
 
     # Cabeçalho da barra lateral
     Ctk.CTkLabel(
@@ -441,7 +520,7 @@ def menu_inicial():
     )
     navbarBtn.place(x=10, y=10)
 
-    # Criando a área de abas (tabs)
+    # Criando a área de abas (tabs) agora na parte superior
     notebook = ttk.Notebook(menu_inicial)
     notebook.pack(pady=10, padx=10, fill='both', expand=True)
 
@@ -454,10 +533,11 @@ def menu_inicial():
     notebook.add(aba_editar, text="Editar")
     notebook.add(aba_desativar, text="Desativar")
 
-    # Frame de entrada para adicionar, editar e desativar
-    frame_input = ttk.Frame(aba_adicionar)
+    # Frame de entrada para adicionar, editar e desativar (agora na parte superior)
+    frame_input = ttk.Frame(menu_inicial)  # Agora o frame_input está acima da tabela
     frame_input.pack(pady=10, padx=10, fill='x')
 
+    # Adicionando os labels e entradas ao frame_input
     ttk.Label(frame_input, text="Selecionar Tabela", font=("Bahnschrift", 15)).grid(row=0, column=0, padx=5, pady=5, sticky='e')
     tabelas_disponiveis = ['admins', 'clientes', 'profissionais']
     combo_tabelas = ttk.Combobox(frame_input, values=tabelas_disponiveis, width=27)
@@ -479,18 +559,6 @@ def menu_inicial():
     )
     button_filtrar.grid(row=1, column=2, padx=5, pady=5)
 
-    # Frame para exibir a tabela com scrollbar
-    frame_exibir = ttk.Frame(aba_adicionar)
-    frame_exibir.pack(pady=10, expand=True, fill='both')
-
-    tree_scroll = ttk.Scrollbar(frame_exibir, orient="vertical")
-    tree_scroll.pack(side="right", fill="y")
-
-    tree = ttk.Treeview(frame_exibir, columns=[], show='headings', yscrollcommand=tree_scroll.set)
-    tree.pack(fill="both", expand=True)
-
-    tree_scroll.config(command=tree.yview)
-
     # Botão para alternar exibição da senha
     button_alternar_senha = Ctk.CTkButton(
         frame_input,
@@ -503,15 +571,26 @@ def menu_inicial():
     )
     button_alternar_senha.grid(row=2, column=1, padx=5, pady=5)
 
+    # Frame para exibir a tabela com scrollbar agora na parte inferior
+    frame_exibir = ttk.Frame(menu_inicial)  # A tabela foi movida para a parte inferior
+    frame_exibir.pack(pady=10, expand=True, fill='both')
+
+    tree_scroll = ttk.Scrollbar(frame_exibir, orient="vertical")
+    tree_scroll.pack(side="right", fill="y")
+
+    tree = ttk.Treeview(frame_exibir, columns=[], show='headings', yscrollcommand=tree_scroll.set)
+    tree.pack(fill="both", expand=True)
+
+    tree_scroll.config(command=tree.yview)
+
     # Associar a função 'exibir_registros' à mudança de seleção do ComboBox
     combo_tabelas.bind("<<ComboboxSelected>>", lambda event: exibir_registros())
 
     # Exibir os registros ao iniciar
     exibir_registros()
 
-    # Levanta a barra lateral acima dos outros widgets
-    navmenu_inicial.lift()
-
+# Inicializa o menu inicial
+menu_inicial()
 
 ###############################################################################################
 
@@ -541,47 +620,33 @@ def tela_login():
     image_frame = Ctk.CTkFrame(main_frame, fg_color="white", height=500, width=500, corner_radius=20)
     image_frame.grid(row=0, column=0, padx=20, pady=20)
 
-
-
     # Área para as entradas (lado direito)
     login_frame = Ctk.CTkFrame(main_frame, fg_color="white", height=500, width=300, corner_radius=20)
     login_frame.grid(row=0, column=1, padx=20, pady=20)
 
     # Título "Login"
     title = Ctk.CTkLabel(login_frame, text="Login", text_color="black", font=("Bahnschrift", 35))
-    title.grid(row=0, column=0, sticky="nw", pady=30, padx=50)
+    title.grid(row=0, column=0,  pady=30, padx=50)
 
     # Entrada de usuário
     input_usuario = Ctk.CTkEntry(login_frame, text_color="black", placeholder_text="Username", fg_color="white",
                                  placeholder_text_color="black", font=("Bahnschrift", 15), width=250,
                                  corner_radius=15, height=45)
-    input_usuario.grid(row=1, column=0, sticky="nwe", padx=30)
+    input_usuario.grid(row=1, column=0,  padx=30)
 
     # Entrada de senha
     input_senha = Ctk.CTkEntry(login_frame, text_color="black", placeholder_text="Password", fg_color="white",
                                placeholder_text_color="black", font=("Bahnschrift", 15), width=250,
                                corner_radius=15, height=45, show="*")
-    input_senha.grid(row=2, column=0, sticky="nwe", padx=30, pady=20)
+    input_senha.grid(row=2, column=0,  padx=30, pady=20)
 
     # Botão de login
     l_btn = Ctk.CTkButton(login_frame, text="Login", font=("Bahnschrift", 15), height=40, width=120,
                           fg_color="#FF66C4", cursor="hand2", corner_radius=15, command=login_valido_tela_selecionar_usuario)
-    l_btn.grid(row=3, column=0, sticky="ne", pady=20, padx=90)
+    l_btn.grid(row=3, column=0,  pady=20, padx=90)
 
     # Iniciar o loop principal
     tela_login.mainloop()
 
 # Chama a função para abrir a tela de login
 tela_login()
-
-
-
-
-
-
-
-
-
-
-
-
