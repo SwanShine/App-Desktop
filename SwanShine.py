@@ -379,6 +379,57 @@ def atualizar_treeview(cursor, rows):
     # Inserir os dados no TreeView
     for row in rows:
         tree.insert('', 'end', values=row)
+        
+# Função para adicionar novos registros
+def atualizar_aba_adicionar():
+    # Remove todos os widgets existentes no frame
+    for widget in frame_adicionar.winfo_children():
+        widget.destroy()
+
+    # Obtém a tabela selecionada no combobox
+    tabela_selecionada = combo_tabelas.get()
+
+    # Dicionário com os campos para cada tabela
+    campos_por_tabela = {
+        "clientes": [("Nome", "entry_nome"), ("Endereço", "entry_endereco"), ("Email", "entry_email"),
+                     ("CPF", "entry_cpf"), ("Telefone", "entry_telefone"), ("Gênero", "entry_genero"),
+                     ("Senha", "entry_senha")],
+        "admins": [("Nome", "entry_nome"), ("Usuário", "entry_usuario"), ("Senha", "entry_senha")],
+"profissionais": [
+    ("Nome", "entry_nome"),
+    ("Email", "entry_email"),
+    ("CPF", "entry_cpf"),
+    ("Senha", "entry_senha"),
+    ("Celular", "entry_celular"),
+    ("Gênero", "entry_genero"),
+    ("CEP", "entry_cep")
+]
+
+    }
+
+    # Obtém os campos da tabela selecionada
+    campos = campos_por_tabela.get(tabela_selecionada, [])
+
+    # Dicionário para armazenar as entradas
+    entradas = {}
+
+    # Cria os widgets para cada campo
+    for i, (label_text, entry_name) in enumerate(campos):
+        ttk.Label(frame_adicionar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+        entrada = ttk.Entry(frame_adicionar, width=30)
+        entrada.grid(row=i, column=1, padx=5, pady=5)
+        entradas[entry_name] = entrada
+
+    # Botão para adicionar o registro
+    ttk.Button(frame_adicionar, text="Adicionar Registro", 
+               command=lambda: adicionar_registro(entradas)).grid(row=len(campos), columnspan=2, pady=10)
+
+
+# Função para adicionar registro ao banco
+def adicionar_registro(entradas):
+    # (Implementação da lógica para adicionar registros ao banco de dados aqui)
+    pass
+
 
 # Função para exibir registros com filtro de ID
 def exibir_registros():
@@ -413,7 +464,7 @@ def exibir_registros():
             atualizar_treeview(cursor, rows)
         finally:
             conn.close()
-
+            atualizar_aba_adicionar()
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
@@ -519,6 +570,8 @@ def menu_inicial():
         text=""
     )
     navbarBtn.place(x=10, y=10)
+    
+    
 
     # Criando a área de abas (tabs) agora na parte superior
     notebook = ttk.Notebook(menu_inicial)
@@ -526,6 +579,9 @@ def menu_inicial():
 
     # Abas para navegação
     aba_adicionar = ttk.Frame(notebook)
+    # Frame para adicionar registros
+    frame_adicionar = ttk.Frame(aba_adicionar)
+    frame_adicionar.pack(pady=20, padx=20, expand=True)
     aba_editar = ttk.Frame(notebook)
     aba_desativar = ttk.Frame(notebook)
 
