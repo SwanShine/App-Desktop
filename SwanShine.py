@@ -80,8 +80,6 @@ def initialize_window():
     for widget in menu_inicial.winfo_children():
         widget.destroy()
         
-
-
 def fechar_profile():
     global janela_profile
     if janela_profile is not None:
@@ -257,12 +255,6 @@ def sair_menu():
 
 
 #####################################################################################################
-import mysql.connector
-from mysql.connector import Error
-import customtkinter as Ctk
-from tkinter import ttk, PhotoImage, messagebox
-import tkinter as tk
-
 # Variável global para controle de exibição de senha
 senha_censurada = True
 
@@ -335,11 +327,6 @@ def exibir_registros():
         finally:
             conn.close()
 
-import mysql.connector
-from mysql.connector import Error
-import customtkinter as Ctk
-from tkinter import ttk, PhotoImage, messagebox
-import tkinter as tk
 
 # Variável global para controle de exibição de senha
 senha_censurada = True
@@ -380,6 +367,43 @@ def atualizar_treeview(cursor, rows):
     for row in rows:
         tree.insert('', 'end', values=row)
         
+import mysql.connector
+from mysql.connector import Error
+from tkinter import ttk, messagebox
+from tkinter import *
+
+# Função para conectar ao banco de dados
+def conectar_bd():
+    try:
+        conn = mysql.connector.connect(
+            host='swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com',
+            database='swanshine',
+            user='admin',
+            password='gLAHqWkvUoaxwBnm9wKD'
+        )
+        if conn.is_connected():
+            return conn
+    except Error as e:
+        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
+        return None
+
+# Função para obter o próximo ID disponível
+def obter_proximo_id(tabela):
+    conn = conectar_bd()
+    if not conn:
+        return None
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT MAX(id) FROM {tabela}")
+        max_id = cursor.fetchone()[0]  # Obtém o maior ID atual
+        return max_id + 1 if max_id else 1  # Se não houver ID, inicia com 1
+    except Error as e:
+        messagebox.showerror("Erro ao obter ID", f"Erro: {e}")
+        return None
+    finally:
+        conn.close()
+
 # Função para adicionar novos registros
 def atualizar_aba_adicionar():
     # Remove todos os widgets existentes no frame
@@ -391,20 +415,19 @@ def atualizar_aba_adicionar():
 
     # Dicionário com os campos para cada tabela
     campos_por_tabela = {
-        "clientes": [("Nome", "entry_nome"), ("Endereço", "entry_endereco"), ("Email", "entry_email"),
-                     ("CPF", "entry_cpf"), ("Telefone", "entry_telefone"), ("Gênero", "entry_genero"),
-                     ("Senha", "entry_senha")],
-        "admins": [("Nome", "entry_nome"), ("Usuário", "entry_usuario"), ("Senha", "entry_senha")],
-"profissionais": [
-    ("Nome", "entry_nome"),
-    ("Email", "entry_email"),
-    ("CPF", "entry_cpf"),
-    ("Senha", "entry_senha"),
-    ("Celular", "entry_celular"),
-    ("Gênero", "entry_genero"),
-    ("CEP", "entry_cep")
-]
-
+        "clientes": [("Nome", "nome"), ("Endereço", "endereco"), ("Email", "email"),
+                     ("CPF", "cpf"), ("Telefone", "telefone"), ("Gênero", "genero"),
+                     ("Senha", "senha"),("CEP", "cep")],
+        "admins": [("Nome", "nome"), ("Usuário", "usuario"), ("Senha", "senha")],
+        "profissionais": [
+            ("Nome", "nome"),
+            ("Email", "email"),
+            ("CPF", "cpf"),
+            ("Senha", "senha"),
+            ("Celular", "celular"),
+            ("Gênero", "genero"),
+            ("CEP", "cep")
+        ]
     }
 
     # Obtém os campos da tabela selecionada
@@ -422,13 +445,44 @@ def atualizar_aba_adicionar():
 
     # Botão para adicionar o registro
     ttk.Button(frame_adicionar, text="Adicionar Registro", 
-               command=lambda: adicionar_registro(entradas)).grid(row=len(campos), columnspan=2, pady=10)
-
+               command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=len(campos), columnspan=2, pady=10)
 
 # Função para adicionar registro ao banco
-def adicionar_registro(entradas):
-    # (Implementação da lógica para adicionar registros ao banco de dados aqui)
-    pass
+def adicionar_registro(tabela, entradas):
+    conn = conectar_bd()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+
+        # Extrai os valores das entradas
+        valores = {campo: entrada.get() for campo, entrada in entradas.items()}
+
+        # Obter o próximo ID disponível
+        proximo_id = obter_proximo_id(tabela)
+        if not proximo_id:
+            return
+
+        # Adiciona o id ao dicionário de valores
+        valores['id'] = proximo_id
+
+        # Cria a query de inserção dinamicamente (agora incluindo o 'id' manualmente)
+        campos = ", ".join(valores.keys())
+        placeholders = ", ".join(["%s" for _ in valores])
+        query = f"INSERT INTO {tabela} ({campos}) VALUES ({placeholders})"
+
+        # Executa a query
+        cursor.execute(query, tuple(valores.values()))
+        conn.commit()
+
+        messagebox.showinfo("Sucesso", "Registro adicionado com sucesso!")
+    except Error as e:
+        messagebox.showerror("Erro ao adicionar registro", f"Erro: {e}")
+    finally:
+        # Fecha a conexão com o banco
+        conn.close()
+
 
 
 # Função para exibir registros com filtro de ID
@@ -571,8 +625,6 @@ def menu_inicial():
     )
     navbarBtn.place(x=10, y=10)
     
-    
-
     # Criando a área de abas (tabs) agora na parte superior
     notebook = ttk.Notebook(menu_inicial)
     notebook.pack(pady=10, padx=10, fill='both', expand=True)
