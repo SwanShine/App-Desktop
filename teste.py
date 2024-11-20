@@ -1,9 +1,3 @@
-import mysql.connector
-from mysql.connector import Error
-import customtkinter as Ctk
-from tkinter import ttk, PhotoImage, messagebox
-import tkinter as tk
-
 # Variável global para controle de exibição de senha
 senha_censurada = True
 
@@ -76,11 +70,6 @@ def exibir_registros():
         finally:
             conn.close()
 
-import mysql.connector
-from mysql.connector import Error
-import customtkinter as Ctk
-from tkinter import ttk, PhotoImage, messagebox
-import tkinter as tk
 
 # Variável global para controle de exibição de senha
 senha_censurada = True
@@ -121,6 +110,119 @@ def atualizar_treeview(cursor, rows):
     for row in rows:
         tree.insert('', 'end', values=row)
 
+# Função para conectar ao banco de dados
+def conectar_bd():
+    try:
+        conn = mysql.connector.connect(
+            host='swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com',
+            database='swanshine',
+            user='admin',
+            password='gLAHqWkvUoaxwBnm9wKD'
+        )
+        if conn.is_connected():
+            return conn
+    except Error as e:
+        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
+        return None
+
+# Função para obter o próximo ID disponível
+def obter_proximo_id(tabela):
+    conn = conectar_bd()
+    if not conn:
+        return None
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT MAX(id) FROM {tabela}")
+        max_id = cursor.fetchone()[0]  # Obtém o maior ID atual
+        return max_id + 1 if max_id else 1  # Se não houver ID, inicia com 1
+    except Error as e:
+        messagebox.showerror("Erro ao obter ID", f"Erro: {e}")
+        return None
+    finally:
+        conn.close()
+
+# Função para adicionar novos registros
+def atualizar_aba_adicionar():
+    # Remove todos os widgets existentes no frame
+    for widget in frame_adicionar.winfo_children():
+        widget.destroy()
+
+    # Obtém a tabela selecionada no combobox
+    tabela_selecionada = combo_tabelas.get()
+
+    # Dicionário com os campos para cada tabela
+    campos_por_tabela = {
+        "clientes": [("Nome", "nome"), ("Endereço", "endereco"), ("Email", "email"),
+                     ("CPF", "cpf"), ("Telefone", "telefone"), ("Gênero", "genero"),
+                     ("Senha", "senha"),("CEP", "cep")],
+        "admins": [("Nome", "nome"), ("Usuário", "usuario"), ("Senha", "senha")],
+        "profissionais": [
+            ("Nome", "nome"),
+            ("Email", "email"),
+            ("CPF", "cpf"),
+            ("Senha", "senha"),
+            ("Celular", "celular"),
+            ("Gênero", "genero"),
+            ("CEP", "cep")
+        ]
+    }
+
+    # Obtém os campos da tabela selecionada
+    campos = campos_por_tabela.get(tabela_selecionada, [])
+
+    # Dicionário para armazenar as entradas
+    entradas = {}
+
+    # Cria os widgets para cada campo
+    for i, (label_text, entry_name) in enumerate(campos):
+        ttk.Label(frame_adicionar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+        entrada = ttk.Entry(frame_adicionar, width=30)
+        entrada.grid(row=i, column=1, padx=5, pady=5)
+        entradas[entry_name] = entrada
+
+    # Botão para adicionar o registro
+    ttk.Button(frame_adicionar, text="Adicionar Registro", 
+               command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=len(campos), columnspan=2, pady=10)
+
+# Função para adicionar registro ao banco
+def adicionar_registro(tabela, entradas):
+    conn = conectar_bd()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+
+        # Extrai os valores das entradas
+        valores = {campo: entrada.get() for campo, entrada in entradas.items()}
+
+        # Obter o próximo ID disponível
+        proximo_id = obter_proximo_id(tabela)
+        if not proximo_id:
+            return
+
+        # Adiciona o id ao dicionário de valores
+        valores['id'] = proximo_id
+
+        # Cria a query de inserção dinamicamente (agora incluindo o 'id' manualmente)
+        campos = ", ".join(valores.keys())
+        placeholders = ", ".join(["%s" for _ in valores])
+        query = f"INSERT INTO {tabela} ({campos}) VALUES ({placeholders})"
+
+        # Executa a query
+        cursor.execute(query, tuple(valores.values()))
+        conn.commit()
+
+        messagebox.showinfo("Sucesso", "Registro adicionado com sucesso!")
+    except Error as e:
+        messagebox.showerror("Erro ao adicionar registro", f"Erro: {e}")
+    finally:
+        # Fecha a conexão com o banco
+        conn.close()
+
+
+
 # Função para exibir registros com filtro de ID
 def exibir_registros():
     conn = conectar_bd()
@@ -154,7 +256,7 @@ def exibir_registros():
             atualizar_treeview(cursor, rows)
         finally:
             conn.close()
-
+            atualizar_aba_adicionar()
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
@@ -260,13 +362,16 @@ def menu_inicial():
         text=""
     )
     navbarBtn.place(x=10, y=10)
-
+    
     # Criando a área de abas (tabs) agora na parte superior
     notebook = ttk.Notebook(menu_inicial)
     notebook.pack(pady=10, padx=10, fill='both', expand=True)
 
     # Abas para navegação
     aba_adicionar = ttk.Frame(notebook)
+    # Frame para adicionar registros
+    frame_adicionar = ttk.Frame(aba_adicionar)
+    frame_adicionar.pack(pady=20, padx=20, expand=True)
     aba_editar = ttk.Frame(notebook)
     aba_desativar = ttk.Frame(notebook)
 
