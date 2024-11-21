@@ -273,119 +273,34 @@ def conectar_bd():
         messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
         return None
 
-# Função para atualizar o TreeView com os dados
+# Função para atualizar o Treeview com registros
 def atualizar_treeview(cursor, rows):
-    # Limpar os dados existentes
+    # Limpa o treeview
     for item in tree.get_children():
         tree.delete(item)
 
-    if not rows:
-        messagebox.showinfo("Nenhum Registro", "Nenhum registro encontrado.")
-        return
-
-    # Atualizar as colunas do TreeView
+    # Atualiza as colunas do treeview
     colunas = [desc[0] for desc in cursor.description]
-    tree.config(columns=colunas)
-    for coluna in colunas:
-        tree.heading(coluna, text=coluna)
-        tree.column(coluna, width=100, anchor="center")
+    tree["columns"] = colunas
+    tree["show"] = "headings"
 
-    # Inserir os dados no TreeView
+    for col in colunas:
+        tree.heading(col, text=col)
+        tree.column(col, width=120)
+
+    # Insere os registros no Treeview
     for row in rows:
-        tree.insert('', 'end', values=row)
-
-# Função para exibir registros com filtro de ID
-def exibir_registros():
-    conn = conectar_bd()
-    if conn:
-        try:
-            cursor = conn.cursor()
-            tabela_selecionada = combo_tabelas.get()
-
-            # Obtendo o valor de ID
-            id_cliente = entry_id_cliente.get().strip()
-
-            # Construção da query com base no filtro
-            query = {
-                "admins": f"SELECT Id, Nome, Usuario, {'REPEAT(\'*\', CHAR_LENGTH(Senha)) AS Senha' if senha_censurada else 'Senha'} FROM admins",
-                "clientes": f"SELECT id, Nome, endereco, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
-                "profissionais": "SELECT id, nome, email, cpf FROM profissionais"
-            }
-
-            # Adicionando o filtro por ID, se o ID for informado
-            if id_cliente:
-                if tabela_selecionada == "admins":
-                    query["admins"] += f" WHERE Id = {id_cliente}"
-                elif tabela_selecionada == "clientes":
-                    query["clientes"] += f" WHERE id = {id_cliente}"
-                elif tabela_selecionada == "profissionais":
-                    query["profissionais"] += f" WHERE id = {id_cliente}"
-
-            cursor.execute(query[tabela_selecionada])
-            rows = cursor.fetchall()
-            atualizar_treeview(cursor, rows)
-        finally:
-            conn.close()
+        tree.insert("", "end", values=row)
 
 
 # Variável global para controle de exibição de senha
 senha_censurada = True
-
-# Função para conectar ao banco de dados
-def conectar_bd():
-    try:
-        conn = mysql.connector.connect(
-            host='swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com',
-            database='swanshine',
-            user='admin',
-            password='gLAHqWkvUoaxwBnm9wKD'
-        )
-        if conn.is_connected():
-            return conn
-    except Error as e:
-        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
-        return None
-
-# Função para atualizar o TreeView com os dados
-def atualizar_treeview(cursor, rows):
-    # Limpar os dados existentes
-    for item in tree.get_children():
-        tree.delete(item)
-
-    if not rows:
-        messagebox.showinfo("Nenhum Registro", "Nenhum registro encontrado.")
-        return
-
-    # Atualizar as colunas do TreeView
-    colunas = [desc[0] for desc in cursor.description]
-    tree.config(columns=colunas)
-    for coluna in colunas:
-        tree.heading(coluna, text=coluna)
-        tree.column(coluna, width=100, anchor="center")
-
-    # Inserir os dados no TreeView
-    for row in rows:
-        tree.insert('', 'end', values=row)
         
 import mysql.connector
 from mysql.connector import Error
 from tkinter import ttk, messagebox
 from tkinter import *
 
-# Função para conectar ao banco de dados
-def conectar_bd():
-    try:
-        conn = mysql.connector.connect(
-            host='swanshine.cpkoaos0ad68.us-east-2.rds.amazonaws.com',
-            database='swanshine',
-            user='admin',
-            password='gLAHqWkvUoaxwBnm9wKD'
-        )
-        if conn.is_connected():
-            return conn
-    except Error as e:
-        messagebox.showerror("Erro de Conexão", f"Erro ao conectar ao banco de dados: {e}")
-        return None
 
 # Função para obter o próximo ID disponível
 def obter_proximo_id(tabela):
@@ -477,13 +392,109 @@ def adicionar_registro(tabela, entradas):
         conn.commit()
 
         messagebox.showinfo("Sucesso", "Registro adicionado com sucesso!")
+        
+        # Atualiza a exibição da tabela após a inserção
+        exibir_registros()
     except Error as e:
         messagebox.showerror("Erro ao adicionar registro", f"Erro: {e}")
     finally:
         # Fecha a conexão com o banco
         conn.close()
 
+# Função para atualizar registros existentes
+def atualizar_aba_editar():
+    # Remove todos os widgets existentes no frame
+    for widget in frame_editar.winfo_children():
+        widget.destroy()
 
+    # Obtém a tabela selecionada no combobox
+    tabela_selecionada = combo_tabelas.get()
+
+    # Dicionário com os campos para cada tabela
+    campos_por_tabela = {
+        "clientes": [("Nome", "nome"), ("Endereço", "endereco"), ("Email", "email"),
+                     ("CPF", "cpf"), ("Telefone", "telefone"), ("Gênero", "genero"),
+                     ("Senha", "senha"),("CEP", "cep")],
+        "admins": [("Nome", "nome"), ("Usuário", "usuario"), ("Senha", "senha")],
+        "profissionais": [
+            ("Nome", "nome"),
+            ("Email", "email"),
+            ("CPF", "cpf"),
+            ("Senha", "senha"),
+            ("Celular", "celular"),
+            ("Gênero", "genero"),
+            ("CEP", "cep")
+        ]
+    }
+
+    # Obtém os campos da tabela selecionada
+    campos = campos_por_tabela.get(tabela_selecionada, [])
+
+    # Dicionário para armazenar as entradas
+    entradas = {}
+
+    # Cria o campo para inserir o ID do registro a ser editado
+    ttk.Label(frame_editar, text="ID do Registro").grid(row=0, column=0, padx=5, pady=5, sticky='e')
+    entrada_id = ttk.Entry(frame_editar, width=30)
+    entrada_id.grid(row=0, column=1, padx=5, pady=5)
+    entradas['id'] = entrada_id  # Armazena a entrada do ID
+
+    # Cria os widgets para os campos da tabela
+    for i, (label_text, entry_name) in enumerate(campos, start=1):
+        ttk.Label(frame_editar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
+        entrada = ttk.Entry(frame_editar, width=30)
+        entrada.grid(row=i, column=1, padx=5, pady=5)
+        entradas[entry_name] = entrada
+
+    # Botão para editar o registro
+    ttk.Button(frame_editar, text="Editar Registro", 
+               command=lambda: editar_registro(tabela_selecionada, entradas)).grid(row=len(campos) + 1, columnspan=2, pady=10)
+
+# Função para editar um registro no banco
+def editar_registro(tabela, entradas):
+    conn = conectar_bd()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+
+        # Extrai os valores das entradas
+        valores = {campo: entrada.get() for campo, entrada in entradas.items()}
+
+        # Obtém o ID do registro a ser editado
+        id_registro = valores.get('id')
+        if not id_registro:
+            messagebox.showerror("Erro", "ID não fornecido para edição.")
+            return
+
+        # Filtra os valores para remover o campo 'id' da atualização
+        valores_sem_id = {campo: valor for campo, valor in valores.items() if campo != 'id'}
+
+        # Cria uma lista de campos a serem atualizados (somente os que foram preenchidos)
+        campos_a_atualizar = [(campo, valor) for campo, valor in valores_sem_id.items() if valor]
+
+        if not campos_a_atualizar:
+            messagebox.showwarning("Aviso", "Nenhum campo foi alterado.")
+            return
+
+        # Cria a query de atualização dinamicamente
+        set_clause = ", ".join([f"{campo} = %s" for campo, _ in campos_a_atualizar])
+        query = f"UPDATE {tabela} SET {set_clause} WHERE id = %s"
+
+        # Executa a query com os valores para os campos alterados, mais o ID
+        cursor.execute(query, tuple(valor for _, valor in campos_a_atualizar) + (id_registro,))
+        conn.commit()
+
+        messagebox.showinfo("Sucesso", "Registro editado com sucesso!")
+        
+        # Atualiza a exibição da tabela após a edição
+        exibir_registros()
+    except Error as e:
+        messagebox.showerror("Erro ao editar registro", f"Erro: {e}")
+    finally:
+        # Fecha a conexão com o banco
+        conn.close()
 
 # Função para exibir registros com filtro de ID
 def exibir_registros():
@@ -499,9 +510,8 @@ def exibir_registros():
             # Construção da query com base no filtro
             query = {
                 "admins": f"SELECT Id, Nome, Usuario, {'REPEAT(\'*\', CHAR_LENGTH(Senha)) AS Senha' if senha_censurada else 'Senha'} FROM admins",
-"clientes": f"SELECT id, Nome, endereco, cep, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
-"profissionais": f"SELECT id, nome, email, cpf, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'}, celular, genero, cep FROM profissionais"
-
+                "clientes": f"SELECT id, Nome, endereco, cep, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
+                "profissionais": f"SELECT id, nome, email, cpf, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'}, celular, genero, cep FROM profissionais"
             }
 
             # Adicionando o filtro por ID, se o ID for informado
@@ -519,10 +529,14 @@ def exibir_registros():
         finally:
             conn.close()
             atualizar_aba_adicionar()
+            atualizar_aba_editar()
+            
+            
+            
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
-    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook
+    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook, frame_editar,aba_adicionar
 
     # Função para alternar a exibição da senha
     def alternar_senha():
@@ -630,16 +644,26 @@ def menu_inicial():
     notebook.pack(pady=10, padx=10, fill='both', expand=True)
 
     # Abas para navegação
+    # Criando a aba "Adicionar"
     aba_adicionar = ttk.Frame(notebook)
-    # Frame para adicionar registros
+    # Frame para o conteúdo da aba "Adicionar"
     frame_adicionar = ttk.Frame(aba_adicionar)
     frame_adicionar.pack(pady=20, padx=20, expand=True)
+
+    # Criando a aba "Editar"
     aba_editar = ttk.Frame(notebook)
+    # Frame para o conteúdo da aba "Editar"
+    frame_editar = ttk.Frame(aba_editar)
+    frame_editar.pack(pady=20, padx=20, expand=True)
+
+    # Criando a aba "Desativar"
     aba_desativar = ttk.Frame(notebook)
 
+    # Adicionando as abas ao notebook
     notebook.add(aba_adicionar, text="Adicionar")
     notebook.add(aba_editar, text="Editar")
     notebook.add(aba_desativar, text="Desativar")
+
 
     # Frame de entrada para adicionar, editar e desativar (agora na parte superior)
     frame_input = ttk.Frame(menu_inicial)  # Agora o frame_input está acima da tabela
