@@ -7,6 +7,7 @@ from customtkinter import CTkCanvas, CTkLabel, CTkEntry, CTkButton, CTkToplevel
 from customtkinter import *
 import PIL
 from PIL import Image
+from PIL import Image, ImageTk  
 import pyglet
 import webbrowser
 import re
@@ -58,21 +59,25 @@ def validar_login(modo='messagebox'):
 
 # Função para validar o login e abrir a tela administrativa
 def login_valido_tela_selecionar_usuario():
-    usuario = input_usuario.get()
-    senha = input_senha.get()
+    usuario = input_usuario.get()  # Obtém o valor do campo de usuário
+    senha = input_senha.get()  # Obtém o valor do campo de senha
 
     try:
-        if login(usuario, senha):  # Verifica se o login é válido
+        # Verifica se o login é válido
+        if login(usuario, senha):
             tela_login.withdraw()  # Fecha a tela de login
             menu_inicial()  # Abre o menu inicial
         else:
+            # Caso o login falhe, exibe uma mensagem de erro
             messagebox.showerror("Login", "Login falhou. Verifique suas credenciais.")
-            initialize_window()
+            initialize_window()  # Reabre a tela de login para nova tentativa
     except Exception as e:
+        # Em caso de erro durante o processo, exibe uma mensagem de erro com a descrição
         messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
     finally:
-        # Qualquer limpeza ou operação adicional necessária
+        # Aqui você pode adicionar qualquer operação de limpeza ou finalização necessária
         pass
+
 
 #funções de reinicialização das telas
 def initialize_window():
@@ -246,15 +251,11 @@ def open_sobre():
         texto_sobre3 = CTkLabel(janela_sobre, text="Funções: Editar, Excluir e Adicionar",font=("Bahnschrift", 15))
         texto_sobre3.pack(pady=(10, 0))
 
-
-
 def sair_menu():
     resposta = messagebox.askyesno("Confirmar Saída", "Você realmente deseja sair?",)
     if resposta:
         menu_inicial.quit()  # Fecha a aplicação
 
-
-#####################################################################################################
 # Variável global para controle de exibição de senha
 senha_censurada = True
 
@@ -292,15 +293,8 @@ def atualizar_treeview(cursor, rows):
     for row in rows:
         tree.insert("", "end", values=row)
 
-
 # Variável global para controle de exibição de senha
 senha_censurada = True
-        
-import mysql.connector
-from mysql.connector import Error
-from tkinter import ttk, messagebox
-from tkinter import *
-
 
 # Função para obter o próximo ID disponível
 def obter_proximo_id(tabela):
@@ -332,7 +326,7 @@ def atualizar_aba_adicionar():
     campos_por_tabela = {
         "clientes": [("Nome", "nome"), ("Endereço", "endereco"), ("Email", "email"),
                      ("CPF", "cpf"), ("Telefone", "telefone"), ("Gênero", "genero"),
-                     ("Senha", "senha"),("CEP", "cep")],
+                     ("Senha", "senha"), ("CEP", "cep")],
         "admins": [("Nome", "nome"), ("Usuário", "usuario"), ("Senha", "senha")],
         "profissionais": [
             ("Nome", "nome"),
@@ -362,8 +356,13 @@ def atualizar_aba_adicionar():
     ttk.Button(frame_adicionar, text="Adicionar Registro", 
                command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=len(campos), columnspan=2, pady=10)
 
-# Função para adicionar registro ao banco
+# Função para adicionar registro ao banco com verificação
 def adicionar_registro(tabela, entradas):
+    # Pergunta ao usuário se deseja adicionar o registro
+    confirmar = messagebox.askyesno("Confirmação", "Deseja realmente adicionar este registro?")
+    if not confirmar:
+        return  # Sai da função caso o usuário cancele
+
     conn = conectar_bd()
     if not conn:
         return
@@ -414,7 +413,7 @@ def atualizar_aba_editar():
     campos_por_tabela = {
         "clientes": [("Nome", "nome"), ("Endereço", "endereco"), ("Email", "email"),
                      ("CPF", "cpf"), ("Telefone", "telefone"), ("Gênero", "genero"),
-                     ("Senha", "senha"),("CEP", "cep")],
+                     ("Senha", "senha"), ("CEP", "cep")],
         "admins": [("Nome", "nome"), ("Usuário", "usuario"), ("Senha", "senha")],
         "profissionais": [
             ("Nome", "nome"),
@@ -478,6 +477,12 @@ def editar_registro(tabela, entradas):
             messagebox.showwarning("Aviso", "Nenhum campo foi alterado.")
             return
 
+        # Solicita confirmação do usuário antes de editar
+        confirmacao = messagebox.askyesno("Confirmação", "Deseja realmente editar este registro?")
+        if not confirmacao:
+            messagebox.showinfo("Ação cancelada", "A edição foi cancelada.")
+            return
+
         # Cria a query de atualização dinamicamente
         set_clause = ", ".join([f"{campo} = %s" for campo, _ in campos_a_atualizar])
         query = f"UPDATE {tabela} SET {set_clause} WHERE id = %s"
@@ -492,6 +497,66 @@ def editar_registro(tabela, entradas):
         exibir_registros()
     except Error as e:
         messagebox.showerror("Erro ao editar registro", f"Erro: {e}")
+    finally:
+        # Fecha a conexão com o banco
+        conn.close()
+    
+# Função para configurar a aba de exclusão de registros
+def atualizar_aba_deletar():
+    # Remove todos os widgets existentes no frame
+    for widget in frame_deletar.winfo_children():
+        widget.destroy()
+
+    # Obtém a tabela selecionada no combobox
+    tabela_selecionada = combo_tabelas.get()
+
+    # Cria o campo para inserir o ID do registro a ser deletado
+    ttk.Label(frame_deletar, text="ID do Registro").grid(row=0, column=0, padx=5, pady=5, sticky='e')
+    entrada_id = ttk.Entry(frame_deletar, width=30)
+    entrada_id.grid(row=0, column=1, padx=5, pady=5)
+
+    # Botão para deletar o registro
+    ttk.Button(
+        frame_deletar,
+        text="Deletar Registro",
+        command=lambda: confirmar_exclusao(tabela_selecionada, entrada_id.get())
+    ).grid(row=1, columnspan=2, pady=10)
+
+# Função para exibir a mensagem de confirmação antes de excluir
+def confirmar_exclusao(tabela, id_registro):
+    if not id_registro:
+        messagebox.showerror("Erro", "ID não fornecido para exclusão.")
+        return
+
+    resposta = messagebox.askyesno("Confirmação", f"Tem certeza que deseja deletar o registro com ID {id_registro} da tabela '{tabela}'?")
+    if resposta:
+        deletar_registro(tabela, id_registro)
+
+# Função para deletar um registro no banco
+def deletar_registro(tabela, id_registro):
+    conn = conectar_bd()
+    if not conn:
+        return
+
+    try:
+        cursor = conn.cursor()
+
+        # Query para deletar o registro pelo ID
+        query = f"DELETE FROM {tabela} WHERE id = %s"
+
+        # Executa a query
+        cursor.execute(query, (id_registro,))
+        conn.commit()
+
+        if cursor.rowcount > 0:
+            messagebox.showinfo("Sucesso", "Registro deletado com sucesso!")
+        else:
+            messagebox.showwarning("Aviso", "Nenhum registro encontrado com o ID fornecido.")
+        
+        # Atualiza a exibição da tabela após a exclusão
+        exibir_registros()
+    except Error as e:
+        messagebox.showerror("Erro ao deletar registro", f"Erro: {e}")
     finally:
         # Fecha a conexão com o banco
         conn.close()
@@ -530,13 +595,12 @@ def exibir_registros():
             conn.close()
             atualizar_aba_adicionar()
             atualizar_aba_editar()
-            
-            
-            
+            atualizar_aba_deletar()
+               
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
-    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook, frame_editar,aba_adicionar
+    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook, frame_editar,aba_adicionar, aba_deletar,frame_deletar
 
     # Função para alternar a exibição da senha
     def alternar_senha():
@@ -649,21 +713,29 @@ def menu_inicial():
     # Frame para o conteúdo da aba "Adicionar"
     frame_adicionar = ttk.Frame(aba_adicionar)
     frame_adicionar.pack(pady=20, padx=20, expand=True)
+    # Adicionando a aba "Adicionar" ao notebook
+    notebook.add(aba_adicionar, text="Adicionar")
 
     # Criando a aba "Editar"
     aba_editar = ttk.Frame(notebook)
     # Frame para o conteúdo da aba "Editar"
     frame_editar = ttk.Frame(aba_editar)
     frame_editar.pack(pady=20, padx=20, expand=True)
+    # Adicionando a aba "Editar" ao notebook
+    notebook.add(aba_editar, text="Editar")
 
-    # Criando a aba "Desativar"
-    aba_desativar = ttk.Frame(notebook)
+    # Criando a aba "deletar"
+    aba_deletar = ttk.Frame(notebook)
+    # Frame para o conteúdo da aba "deletar"
+    frame_deletar = ttk.Frame(aba_deletar)
+    frame_deletar.pack(pady=20, padx=20, expand=True)
+    # Adicionando a aba "deletar" ao notebook
+    notebook.add(aba_deletar, text="Deletar")
 
     # Adicionando as abas ao notebook
     notebook.add(aba_adicionar, text="Adicionar")
     notebook.add(aba_editar, text="Editar")
-    notebook.add(aba_desativar, text="Desativar")
-
+    notebook.add(aba_deletar, text="deletar")
 
     # Frame de entrada para adicionar, editar e desativar (agora na parte superior)
     frame_input = ttk.Frame(menu_inicial)  # Agora o frame_input está acima da tabela
@@ -721,64 +793,50 @@ def menu_inicial():
     # Exibir os registros ao iniciar
     exibir_registros()
 
-# Inicializa o menu inicial
-menu_inicial()
-
-###############################################################################################
-
-import customtkinter as Ctk
-from PIL import Image, ImageTk  # Necessário para trabalhar com imagens
-
-# Função de tela de login
+# Tela de Login
 def tela_login():
     global tela_login, input_usuario, input_senha
+    
+import customtkinter as Ctk  # Importa a biblioteca customtkinter
+import tkinter as tk  # Importa o tkinter para lidar com a imagem
 
-    # Configurando a tela de login
-    tela_login = Ctk.CTk()
-    tela_login.title("Login")
-    tela_login.resizable(False, False)
-    tela_login.config(bg="white")
+# Configurando a tela de login
+tela_login = Ctk.CTk()
+tela_login.title("Login")
+tela_login.resizable(False, False)
+tela_login.config(bg="white")
 
-    # Carregar a imagem (ajustando para 500x500 pixels)
-    logo_img = Image.open("Logo_tela_de_login.png")  # Caminho para a sua imagem
-    logo_img = logo_img.resize((500, 500))  # Ajusta o tamanho
-    logo = ImageTk.PhotoImage(logo_img)
+# Carregando a imagem com tkinter
+dark_image = tk.PhotoImage(file="Logo_tela_de_login.png")
 
-    # Frame principal que vai conter as áreas de imagem e login
-    main_frame = Ctk.CTkFrame(tela_login, fg_color="white", height=600, width=800, corner_radius=20)
-    main_frame.grid(row=0, column=0, padx=40, pady=40)
+# Label com imagem usando grid ao invés de pack
+label = Ctk.CTkLabel(tela_login, image=dark_image, text="")
+label.grid(row=0, column=0, pady=20, padx=20)
 
-    # Área para a imagem
-    image_frame = Ctk.CTkFrame(main_frame, fg_color="white", height=500, width=500, corner_radius=20)
-    image_frame.grid(row=0, column=0, padx=20, pady=20)
+# Frame de fundo
+frame1 = Ctk.CTkFrame(tela_login, fg_color="white", height=350, width=300, corner_radius=20)
+frame1.grid(row=0, column=1, padx=40)
 
-    # Área para as entradas (lado direito)
-    login_frame = Ctk.CTkFrame(main_frame, fg_color="white", height=500, width=300, corner_radius=20)
-    login_frame.grid(row=0, column=1, padx=20, pady=20)
+# Título "Login"
+title = Ctk.CTkLabel(frame1, text="Login", text_color="black", font=("Bahnschrift", 35))
+title.grid(row=0, column=0, sticky="nw", pady=30, padx=100)
 
-    # Título "Login"
-    title = Ctk.CTkLabel(login_frame, text="Login", text_color="black", font=("Bahnschrift", 35))
-    title.grid(row=0, column=0,  pady=30, padx=50)
+# Entrada de usuário
+input_usuario = Ctk.CTkEntry(frame1, text_color="black", placeholder_text="Username", fg_color="white",
+                             placeholder_text_color="black", font=("Bahnschrift", 15), width=200,
+                             corner_radius=15, height=45)
+input_usuario.grid(row=1, column=0, sticky="nwe", padx=30)
 
-    # Entrada de usuário
-    input_usuario = Ctk.CTkEntry(login_frame, text_color="black", placeholder_text="Username", fg_color="white",
-                                 placeholder_text_color="black", font=("Bahnschrift", 15), width=250,
-                                 corner_radius=15, height=45)
-    input_usuario.grid(row=1, column=0,  padx=30)
+# Entrada de senha
+input_senha = Ctk.CTkEntry(frame1, text_color="black", placeholder_text="Password", fg_color="white",
+                           placeholder_text_color="black", font=("Bahnschrift", 15), width=200,
+                           corner_radius=15, height=45, show="*")
+input_senha.grid(row=2, column=0, sticky="nwe", padx=30, pady=20)
 
-    # Entrada de senha
-    input_senha = Ctk.CTkEntry(login_frame, text_color="black", placeholder_text="Password", fg_color="white",
-                               placeholder_text_color="black", font=("Bahnschrift", 15), width=250,
-                               corner_radius=15, height=45, show="*")
-    input_senha.grid(row=2, column=0,  padx=30, pady=20)
+# Botão de login
+l_btn = Ctk.CTkButton(frame1, text="Login", font=("Bahnschrift", 15), height=40, width=60,
+                      fg_color="#FF66C4", cursor="hand2", corner_radius=15, command=login_valido_tela_selecionar_usuario)
+l_btn.grid(row=3, column=0, sticky="ne", pady=20, padx=100)
 
-    # Botão de login
-    l_btn = Ctk.CTkButton(login_frame, text="Login", font=("Bahnschrift", 15), height=40, width=120,
-                          fg_color="#FF66C4", cursor="hand2", corner_radius=15, command=login_valido_tela_selecionar_usuario)
-    l_btn.grid(row=3, column=0,  pady=20, padx=90)
-
-    # Iniciar o loop principal
-    tela_login.mainloop()
-
-# Chama a função para abrir a tela de login
-tela_login()
+# Iniciar o loop principal
+tela_login.mainloop()
