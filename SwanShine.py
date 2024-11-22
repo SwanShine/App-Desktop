@@ -313,6 +313,62 @@ def obter_proximo_id(tabela):
     finally:
         conn.close()
 
+
+
+def remover_nao_numericos(valor):
+    """Remove todos os caracteres não numéricos da string."""
+    return re.sub(r'\D', '', valor)
+
+def aplicar_mascara(valor, tipo):
+    """Aplica a máscara no valor de acordo com o tipo fornecido."""
+    # Remove caracteres não numéricos
+    valor = remover_nao_numericos(valor)
+    
+    if tipo == 'cpf':
+        # Validação de comprimento para CPF (11 dígitos)
+        if len(valor) == 11:
+            return re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', valor)
+    
+    elif tipo == 'telefone':
+        # Validação de comprimento para telefone (10 ou 11 dígitos)
+        if len(valor) == 10:  # Para números de telefone fixo
+            return re.sub(r'(\d{2})(\d{4})(\d{4})', r'(\1) \2-\3', valor)
+        elif len(valor) == 11:  # Para números de telefone celular
+            return re.sub(r'(\d{2})(\d{5})(\d{4})', r'(\1) \2-\3', valor)
+    
+    elif tipo == 'cep':
+        # Validação de comprimento para CEP (8 dígitos)
+        if len(valor) == 8:
+            return re.sub(r'(\d{5})(\d{3})', r'\1-\2', valor)
+    
+    # Retorna o valor sem máscara caso não tenha o comprimento esperado
+    return valor
+
+import re
+import tkinter as tk
+from tkinter import ttk
+
+# Função para aplicar máscara no campo CPF
+def mascara_cpf(event):
+    cpf = event.widget.get()
+    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', cpf)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cpf_formatado)
+
+# Função para aplicar máscara no campo Telefone
+def mascara_telefone(event):
+    telefone = event.widget.get()
+    telefone_formatado = re.sub(r'(\d{2})(\d{4})(\d{4})', r'(\1) \2-\3', telefone)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, telefone_formatado)
+
+# Função para aplicar máscara no campo CEP
+def mascara_cep(event):
+    cep = event.widget.get()
+    cep_formatado = re.sub(r'(\d{5})(\d{3})', r'\1-\2', cep)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cep_formatado)
+
 # Função para adicionar novos registros
 def atualizar_aba_adicionar():
     # Remove todos os widgets existentes no frame
@@ -349,12 +405,22 @@ def atualizar_aba_adicionar():
     for i, (label_text, entry_name) in enumerate(campos):
         ttk.Label(frame_adicionar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
         entrada = ttk.Entry(frame_adicionar, width=30)
+        
+        # Aplica as máscaras específicas aos campos
+        if entry_name == "cpf":
+            entrada.bind("<KeyRelease>", mascara_cpf)
+        elif entry_name == "telefone":
+            entrada.bind("<KeyRelease>", mascara_telefone)
+        elif entry_name == "cep":
+            entrada.bind("<KeyRelease>", mascara_cep)
+        
         entrada.grid(row=i, column=1, padx=5, pady=5)
         entradas[entry_name] = entrada
 
     # Botão para adicionar o registro
     ttk.Button(frame_adicionar, text="Adicionar Registro", 
                command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=len(campos), columnspan=2, pady=10)
+
 
 # Função para adicionar registro ao banco com verificação
 def adicionar_registro(tabela, entradas):
@@ -400,6 +466,31 @@ def adicionar_registro(tabela, entradas):
         # Fecha a conexão com o banco
         conn.close()
 
+import re
+import tkinter as tk
+from tkinter import ttk
+
+# Função para aplicar máscara no campo CPF
+def mascara_cpf(event):
+    cpf = event.widget.get()
+    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', cpf)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cpf_formatado)
+
+# Função para aplicar máscara no campo Telefone
+def mascara_telefone(event):
+    telefone = event.widget.get()
+    telefone_formatado = re.sub(r'(\d{2})(\d{4})(\d{4})', r'(\1) \2-\3', telefone)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, telefone_formatado)
+
+# Função para aplicar máscara no campo CEP
+def mascara_cep(event):
+    cep = event.widget.get()
+    cep_formatado = re.sub(r'(\d{5})(\d{3})', r'\1-\2', cep)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cep_formatado)
+
 # Função para atualizar registros existentes
 def atualizar_aba_editar():
     # Remove todos os widgets existentes no frame
@@ -442,12 +533,22 @@ def atualizar_aba_editar():
     for i, (label_text, entry_name) in enumerate(campos, start=1):
         ttk.Label(frame_editar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
         entrada = ttk.Entry(frame_editar, width=30)
+        
+        # Aplica as máscaras específicas aos campos
+        if entry_name == "cpf":
+            entrada.bind("<KeyRelease>", mascara_cpf)
+        elif entry_name == "telefone" or entry_name == "celular":
+            entrada.bind("<KeyRelease>", mascara_telefone)
+        elif entry_name == "cep":
+            entrada.bind("<KeyRelease>", mascara_cep)
+        
         entrada.grid(row=i, column=1, padx=5, pady=5)
         entradas[entry_name] = entrada
 
     # Botão para editar o registro
     ttk.Button(frame_editar, text="Editar Registro", 
                command=lambda: editar_registro(tabela_selecionada, entradas)).grid(row=len(campos) + 1, columnspan=2, pady=10)
+
 
 # Função para editar um registro no banco
 def editar_registro(tabela, entradas):
@@ -797,9 +898,6 @@ def menu_inicial():
 def tela_login():
     global tela_login, input_usuario, input_senha
     
-import customtkinter as Ctk  # Importa a biblioteca customtkinter
-import tkinter as tk  # Importa o tkinter para lidar com a imagem
-
 # Configurando a tela de login
 tela_login = Ctk.CTk()
 tela_login.title("Login")
