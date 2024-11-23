@@ -414,6 +414,8 @@ def atualizar_aba_adicionar():
             entrada.bind("<KeyRelease>", mascara_cpf)
         elif entry_name == "telefone":
             entrada.bind("<KeyRelease>", mascara_telefone)
+        elif entry_name == "celular":
+            entrada.bind("<KeyRelease>", mascara_celular)  # Máscara de celular aplicada aqui
         elif entry_name == "cep":
             entrada.bind("<KeyRelease>", mascara_cep)
 
@@ -430,7 +432,6 @@ def atualizar_aba_adicionar():
     # Ajusta o comportamento das colunas para ocupar menos espaço (de acordo com o conteúdo)
     for col in range(4):  # Agora temos 4 colunas para os labels e entradas (2 por linha)
         frame_adicionar.grid_columnconfigure(col, weight=1, minsize=150)
-
 # Função para adicionar registro ao banco com verificação
 def adicionar_registro(tabela, entradas):
     # Pergunta ao usuário se deseja adicionar o registro
@@ -494,6 +495,46 @@ def mascara_cep(event):
     event.widget.delete(0, tk.END)
     event.widget.insert(0, cep_formatado)
 
+# Função para aplicar máscara no campo Celular
+def mascara_celular(event):
+    celular = event.widget.get()
+    celular_formatado = re.sub(r'(\d{2})(\d{5})(\d{4})', r'(\1) \2-\3', celular)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, celular_formatado)
+
+
+import re
+import tkinter as tk
+from tkinter import ttk
+
+# Função para aplicar máscara no campo CPF
+def mascara_cpf(event):
+    cpf = event.widget.get()
+    cpf_formatado = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', cpf)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cpf_formatado)
+
+# Função para aplicar máscara no campo Telefone
+def mascara_telefone(event):
+    telefone = event.widget.get()
+    telefone_formatado = re.sub(r'(\d{2})(\d{4})(\d{4})', r'(\1) \2-\3', telefone)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, telefone_formatado)
+
+# Função para aplicar máscara no campo CEP
+def mascara_cep(event):
+    cep = event.widget.get()
+    cep_formatado = re.sub(r'(\d{5})(\d{3})', r'\1-\2', cep)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, cep_formatado)
+
+# Função para aplicar máscara no campo Celular
+def mascara_celular(event):
+    celular = event.widget.get()
+    celular_formatado = re.sub(r'(\d{2})(\d{5})(\d{4})', r'(\1) \2-\3', celular)
+    event.widget.delete(0, tk.END)
+    event.widget.insert(0, celular_formatado)
+
 # Função para atualizar registros existentes
 def atualizar_aba_editar():
     # Remove todos os widgets existentes no frame
@@ -552,7 +593,7 @@ def atualizar_aba_editar():
         if entry_name == "cpf":
             entrada.bind("<KeyRelease>", mascara_cpf)
         elif entry_name == "telefone" or entry_name == "celular":
-            entrada.bind("<KeyRelease>", mascara_telefone)
+            entrada.bind("<KeyRelease>", mascara_celular)  # Máscara de celular aplicada aqui
         elif entry_name == "cep":
             entrada.bind("<KeyRelease>", mascara_cep)
 
