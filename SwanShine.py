@@ -77,8 +77,7 @@ def login_valido_tela_selecionar_usuario():
     finally:
         # Aqui você pode adicionar qualquer operação de limpeza ou finalização necessária
         pass
-
-
+    
 #funções de reinicialização das telas
 def initialize_window():
     # Limpa a janela antes de reinicializá-la
@@ -183,8 +182,7 @@ janela_configuracoes = None
 janela_contato = None
 janela_sobre = None
 menu_inicial = None
-
-        
+       
 def open_configuracoes():
     global theme_button
     global janela_configuracoes
@@ -313,8 +311,6 @@ def obter_proximo_id(tabela):
     finally:
         conn.close()
 
-
-
 def remover_nao_numericos(valor):
     """Remove todos os caracteres não numéricos da string."""
     return re.sub(r'\D', '', valor)
@@ -343,10 +339,6 @@ def aplicar_mascara(valor, tipo):
     
     # Retorna o valor sem máscara caso não tenha o comprimento esperado
     return valor
-
-import re
-import tkinter as tk
-from tkinter import ttk
 
 # Função para aplicar máscara no campo CPF
 def mascara_cpf(event):
@@ -387,6 +379,7 @@ def atualizar_aba_adicionar():
         "profissionais": [
             ("Nome", "nome"),
             ("Email", "email"),
+            ("Endereço", "endereco"),  # Novo campo adicionado aqui
             ("CPF", "cpf"),
             ("Senha", "senha"),
             ("Celular", "celular"),
@@ -428,11 +421,9 @@ def adicionar_registro(tabela, entradas):
     confirmar = messagebox.askyesno("Confirmação", "Deseja realmente adicionar este registro?")
     if not confirmar:
         return  # Sai da função caso o usuário cancele
-
     conn = conectar_bd()
     if not conn:
         return
-
     try:
         cursor = conn.cursor()
 
@@ -465,10 +456,6 @@ def adicionar_registro(tabela, entradas):
     finally:
         # Fecha a conexão com o banco
         conn.close()
-
-import re
-import tkinter as tk
-from tkinter import ttk
 
 # Função para aplicar máscara no campo CPF
 def mascara_cpf(event):
@@ -509,6 +496,7 @@ def atualizar_aba_editar():
         "profissionais": [
             ("Nome", "nome"),
             ("Email", "email"),
+            ("Endereço", "endereco"),  # Novo campo adicionado aqui
             ("CPF", "cpf"),
             ("Senha", "senha"),
             ("Celular", "celular"),
@@ -638,7 +626,6 @@ def deletar_registro(tabela, id_registro):
     conn = conectar_bd()
     if not conn:
         return
-
     try:
         cursor = conn.cursor()
 
@@ -677,7 +664,7 @@ def exibir_registros():
             query = {
                 "admins": f"SELECT Id, Nome, Usuario, {'REPEAT(\'*\', CHAR_LENGTH(Senha)) AS Senha' if senha_censurada else 'Senha'} FROM admins",
                 "clientes": f"SELECT id, Nome, endereco, cep, email, cpf, telefone, genero, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'} FROM clientes",
-                "profissionais": f"SELECT id, nome, email, cpf, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'}, celular, genero, cep FROM profissionais"
+                "profissionais": f"SELECT id, nome, endereco, email, cpf, {'REPEAT(\'*\', CHAR_LENGTH(senha)) AS senha' if senha_censurada else 'senha'}, celular, genero, cep FROM profissionais"  # Campo 'endereco' adicionado
             }
 
             # Adicionando o filtro por ID, se o ID for informado
@@ -697,17 +684,28 @@ def exibir_registros():
             atualizar_aba_adicionar()
             atualizar_aba_editar()
             atualizar_aba_deletar()
-               
+ 
+
+
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
-    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook, frame_editar,aba_adicionar, aba_deletar,frame_deletar
+    global combo_tabelas, frame_adicionar, tree, frame_exibir, entry_id_cliente, notebook, frame_editar, aba_adicionar, aba_deletar, frame_deletar
 
     # Função para alternar a exibição da senha
     def alternar_senha():
         global senha_censurada
         senha_censurada = not senha_censurada
         exibir_registros()
+
+    # Função para alternar a visibilidade da barra lateral
+    def toggle_sidebar():
+        if navmenu_inicial.winfo_x() < 0:
+            navmenu_inicial.place(x=0, y=0)
+            navmenu_inicial.lift()
+        else:
+            navmenu_inicial.place(x=-300, y=0)
+            navmenu_inicial.lower()
 
     # Criação da janela principal
     menu_inicial = Ctk.CTkToplevel()
@@ -728,18 +726,19 @@ def menu_inicial():
     hover_color = "#000000"  # Cor de hover (mais clara)
 
     # Criação da barra lateral (Navbar) com posição fixa
-    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=main_color, height=720, width=300)
-    navmenu_inicial.place(x=-300, y=0)  # Posição inicial fora da tela
+    navmenu_inicial = Ctk.CTkFrame(menu_inicial, fg_color=main_color, height=720, width=300, corner_radius=10)
+    navmenu_inicial.place(x=-300, y=0)  # Inicialmente fora da tela
 
     # Cabeçalho da barra lateral
     Ctk.CTkLabel(
         navmenu_inicial,
         text="Menu",
-        font=("Bahnschrift", 15),
+        font=("Bahnschrift", 18, "bold"),
         fg_color=main_color,
         text_color="white",
         height=60,
-        width=300
+        width=300,
+        corner_radius=10
     ).place(x=0, y=0)
 
     # Opções no Navbar
@@ -751,12 +750,13 @@ def menu_inicial():
         button = Ctk.CTkButton(
             navmenu_inicial,
             text=option,
-            font=("Bahnschrift", 15),
+            font=("Bahnschrift", 16),
             fg_color=main_color,
             hover_color=hover_color,
-            text_color="black",
+            text_color="white",
             width=250,
             height=40,
+            corner_radius=8,
             command=command
         )
         button.place(x=25, y=y)
@@ -769,9 +769,10 @@ def menu_inicial():
         image=closeIcon,
         fg_color=main_color,
         hover_color=hover_color,
-        command=switch,
+        command=toggle_sidebar,  # Agora usamos toggle_sidebar para alternar
         width=40,
-        height=40
+        height=40,
+        corner_radius=20
     )
     closeBtn.place(x=250, y=10)
 
@@ -783,7 +784,7 @@ def menu_inicial():
     homeLabel = Ctk.CTkLabel(
         topFrame,
         text="SwanShine",
-        font=("Bahnschrift", 15),
+        font=("Bahnschrift", 18, "bold"),
         fg_color=main_color,
         text_color="white",
         height=60,
@@ -797,49 +798,36 @@ def menu_inicial():
         image=navIcon,
         fg_color=main_color,
         hover_color=hover_color,
-        command=switch,
+        command=toggle_sidebar,
         width=40,
         height=40,
-        text=""
+        text="",
+        corner_radius=20
     )
     navbarBtn.place(x=10, y=10)
-    
+
     # Criando a área de abas (tabs) agora na parte superior
     notebook = ttk.Notebook(menu_inicial)
     notebook.pack(pady=10, padx=10, fill='both', expand=True)
 
     # Abas para navegação
-    # Criando a aba "Adicionar"
     aba_adicionar = ttk.Frame(notebook)
-    # Frame para o conteúdo da aba "Adicionar"
     frame_adicionar = ttk.Frame(aba_adicionar)
     frame_adicionar.pack(pady=20, padx=20, expand=True)
-    # Adicionando a aba "Adicionar" ao notebook
     notebook.add(aba_adicionar, text="Adicionar")
 
-    # Criando a aba "Editar"
     aba_editar = ttk.Frame(notebook)
-    # Frame para o conteúdo da aba "Editar"
     frame_editar = ttk.Frame(aba_editar)
     frame_editar.pack(pady=20, padx=20, expand=True)
-    # Adicionando a aba "Editar" ao notebook
     notebook.add(aba_editar, text="Editar")
 
-    # Criando a aba "deletar"
     aba_deletar = ttk.Frame(notebook)
-    # Frame para o conteúdo da aba "deletar"
     frame_deletar = ttk.Frame(aba_deletar)
     frame_deletar.pack(pady=20, padx=20, expand=True)
-    # Adicionando a aba "deletar" ao notebook
     notebook.add(aba_deletar, text="Deletar")
 
-    # Adicionando as abas ao notebook
-    notebook.add(aba_adicionar, text="Adicionar")
-    notebook.add(aba_editar, text="Editar")
-    notebook.add(aba_deletar, text="deletar")
-
     # Frame de entrada para adicionar, editar e desativar (agora na parte superior)
-    frame_input = ttk.Frame(menu_inicial)  # Agora o frame_input está acima da tabela
+    frame_input = ttk.Frame(menu_inicial)
     frame_input.pack(pady=10, padx=10, fill='x')
 
     # Adicionando os labels e entradas ao frame_input
@@ -877,7 +865,7 @@ def menu_inicial():
     button_alternar_senha.grid(row=2, column=1, padx=5, pady=5)
 
     # Frame para exibir a tabela com scrollbar agora na parte inferior
-    frame_exibir = ttk.Frame(menu_inicial)  # A tabela foi movida para a parte inferior
+    frame_exibir = ttk.Frame(menu_inicial)
     frame_exibir.pack(pady=10, expand=True, fill='both')
 
     tree_scroll = ttk.Scrollbar(frame_exibir, orient="vertical")
@@ -893,6 +881,7 @@ def menu_inicial():
 
     # Exibir os registros ao iniciar
     exibir_registros()
+
 
 # Tela de Login
 def tela_login():
