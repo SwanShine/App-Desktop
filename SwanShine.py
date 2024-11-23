@@ -75,7 +75,7 @@ def login_valido_tela_selecionar_usuario():
         # Em caso de erro durante o processo, exibe uma mensagem de erro com a descrição
         messagebox.showerror("Erro", f"Ocorreu um erro: {e}")
     finally:
-        # Aqui você pode adicionar qualquer operação de limpeza ou finalização necessária
+        # adicionar qualquer operação de limpeza ou finalização necessária
         pass
     
 #funções de reinicialização das telas
@@ -237,13 +237,13 @@ def open_sobre():
         titulo_sobre.pack(pady=(10, 5))
         
         # Adiciona o texto descritivo
-        texto_sobre = CTkLabel(janela_sobre, text="Esse App é um exemplo de como funcionaria o sistema de administração SwanShine",font=("Bahnschrift", 15))
+        texto_sobre = CTkLabel(janela_sobre, text="Esse App é um exemplo de como funcionaria o sistema de administração Swan Shine",font=("Bahnschrift", 15))
         texto_sobre.pack(pady=(0, 5))
         
         texto_sobre1 = CTkLabel(janela_sobre, text="Competências e Capacidades", font=("Bahnschrift", 15))
         texto_sobre1.pack(pady=(0, 5))
         
-        texto_sobre2 = CTkLabel(janela_sobre, text="Aplicativo destinado a administradores e gerentes SwanShine",font=("Bahnschrift", 15))
+        texto_sobre2 = CTkLabel(janela_sobre, text="Aplicativo destinado a administradores e gerentes Swan Shine",font=("Bahnschrift", 15))
         texto_sobre2.pack(pady=(0, 5))
         
         texto_sobre3 = CTkLabel(janela_sobre, text="Funções: Editar, Excluir e Adicionar",font=("Bahnschrift", 15))
@@ -394,11 +394,21 @@ def atualizar_aba_adicionar():
     # Dicionário para armazenar as entradas
     entradas = {}
 
+    # Definir as colunas por grupo (exemplo: dois campos por linha)
+    campos_por_linha = 2  # Ajuste o número de campos por linha
+
     # Cria os widgets para cada campo
     for i, (label_text, entry_name) in enumerate(campos):
-        ttk.Label(frame_adicionar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
-        entrada = ttk.Entry(frame_adicionar, width=30)
+        # Calcula em qual linha e coluna o campo vai ser posicionado
+        linha = i // campos_por_linha  # Divide a quantidade de campos por linha
+        coluna = i % campos_por_linha  # Alterna entre as colunas (0 ou 1)
+
+        # Cria o label
+        ttk.Label(frame_adicionar, text=label_text).grid(row=linha, column=coluna * 2, padx=5, pady=5, sticky='e')
         
+        # Cria a entrada
+        entrada = ttk.Entry(frame_adicionar, width=30)
+
         # Aplica as máscaras específicas aos campos
         if entry_name == "cpf":
             entrada.bind("<KeyRelease>", mascara_cpf)
@@ -406,14 +416,20 @@ def atualizar_aba_adicionar():
             entrada.bind("<KeyRelease>", mascara_telefone)
         elif entry_name == "cep":
             entrada.bind("<KeyRelease>", mascara_cep)
+
+        # Cria a entrada ao lado do label
+        entrada.grid(row=linha, column=coluna * 2 + 1, padx=5, pady=5)
         
-        entrada.grid(row=i, column=1, padx=5, pady=5)
+        # Armazena a entrada no dicionário
         entradas[entry_name] = entrada
 
     # Botão para adicionar o registro
     ttk.Button(frame_adicionar, text="Adicionar Registro", 
-               command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=len(campos), columnspan=2, pady=10)
+               command=lambda: adicionar_registro(tabela_selecionada, entradas)).grid(row=linha + 1, columnspan=2, pady=10)
 
+    # Ajusta o comportamento das colunas para ocupar menos espaço (de acordo com o conteúdo)
+    for col in range(4):  # Agora temos 4 colunas para os labels e entradas (2 por linha)
+        frame_adicionar.grid_columnconfigure(col, weight=1, minsize=150)
 
 # Função para adicionar registro ao banco com verificação
 def adicionar_registro(tabela, entradas):
@@ -511,7 +527,10 @@ def atualizar_aba_editar():
     # Dicionário para armazenar as entradas
     entradas = {}
 
-    # Cria o campo para inserir o ID do registro a ser editado
+    # Definir as colunas por grupo (exemplo: dois campos por linha)
+    campos_por_linha = 2  # Ajuste o número de campos por linha
+
+    # Cria os widgets para o campo de ID, tratando-o como um campo normal
     ttk.Label(frame_editar, text="ID do Registro").grid(row=0, column=0, padx=5, pady=5, sticky='e')
     entrada_id = ttk.Entry(frame_editar, width=30)
     entrada_id.grid(row=0, column=1, padx=5, pady=5)
@@ -519,9 +538,16 @@ def atualizar_aba_editar():
 
     # Cria os widgets para os campos da tabela
     for i, (label_text, entry_name) in enumerate(campos, start=1):
-        ttk.Label(frame_editar, text=label_text).grid(row=i, column=0, padx=5, pady=5, sticky='e')
-        entrada = ttk.Entry(frame_editar, width=30)
+        # Calcula em qual linha e coluna o campo vai ser posicionado
+        linha = (i + 1) // campos_por_linha  # A linha começa em 1, pois o ID já ocupa a primeira linha
+        coluna = (i + 1) % campos_por_linha  # Alterna entre as colunas (0 ou 1)
+
+        # Cria o label
+        ttk.Label(frame_editar, text=label_text).grid(row=linha, column=coluna * 2, padx=5, pady=5, sticky='e')
         
+        # Cria a entrada
+        entrada = ttk.Entry(frame_editar, width=30)
+
         # Aplica as máscaras específicas aos campos
         if entry_name == "cpf":
             entrada.bind("<KeyRelease>", mascara_cpf)
@@ -529,13 +555,17 @@ def atualizar_aba_editar():
             entrada.bind("<KeyRelease>", mascara_telefone)
         elif entry_name == "cep":
             entrada.bind("<KeyRelease>", mascara_cep)
+
+        # Cria a entrada ao lado do label
+        entrada.grid(row=linha, column=coluna * 2 + 1, padx=5, pady=5)
         
-        entrada.grid(row=i, column=1, padx=5, pady=5)
+        # Armazena a entrada no dicionário
         entradas[entry_name] = entrada
 
     # Botão para editar o registro
     ttk.Button(frame_editar, text="Editar Registro", 
-               command=lambda: editar_registro(tabela_selecionada, entradas)).grid(row=len(campos) + 1, columnspan=2, pady=10)
+               command=lambda: editar_registro(tabela_selecionada, entradas)).grid(row=linha + 1, columnspan=2, pady=10)
+
 
 
 # Função para editar um registro no banco
@@ -685,8 +715,6 @@ def exibir_registros():
             atualizar_aba_editar()
             atualizar_aba_deletar()
  
-
-
 # Função principal para criar o menu inicial
 def menu_inicial():
     global menu_inicial, navmenu_inicial, topFrame, homeLabel, theme_button, navIcon, closeIcon
@@ -709,7 +737,7 @@ def menu_inicial():
 
     # Criação da janela principal
     menu_inicial = Ctk.CTkToplevel()
-    menu_inicial.title("SwanShine")
+    menu_inicial.title("Swan Shine")
     menu_inicial.geometry("1280x720")
     menu_inicial.state('zoomed')
 
@@ -881,7 +909,6 @@ def menu_inicial():
 
     # Exibir os registros ao iniciar
     exibir_registros()
-
 
 # Tela de Login
 def tela_login():
